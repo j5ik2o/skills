@@ -56,3 +56,12 @@ Temporary Items
 .vscode/
 __pycahce__/
 
+.agents/
+.claude/
+.codex*/
+.gemini/
+.cursor/
+.opencode/
+.serena/
+.kiro/
+openspec/
