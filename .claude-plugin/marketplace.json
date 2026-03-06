@@ -13,6 +13,14 @@
       "source": "./plugins/example-skills",
       "category": "development",
       "strict": false
+    },
+    {
+      "name": "takt",
+      "description": "TAKT piece engine skills for multi-agent orchestration. Includes analyzers, builders, and optimizers for TAKT piece YAML workflows.",
+      "version": "1.0.0",
+      "source": "./plugins/takt",
+      "category": "development",
+      "strict": false
     }
   ]
 }
