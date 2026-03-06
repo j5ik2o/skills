@@ -1,6 +1,6 @@
 # example-skills
 
-Claude Code および Codex CLI 向けのサンプルスキルコレクションです。スキルの作成、評価、反復的な改善など、さまざまな機能を示します。
+Claude Code 向けのサンプルスキルコレクションです。スキルの作成、評価、反復的な改善など、さまざまな機能を示します。
 
 ## 利用可能なスキル
 
@@ -12,63 +12,42 @@ Claude Code および Codex CLI 向けのサンプルスキルコレクション
 
 ### 前提条件
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) または [Codex CLI](https://github.com/openai/codex)
-- このリポジトリがローカルにクローンされていること
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) がインストールされていること
 
-### Claude Code の場合
+### ステップ 1: マーケットプレースの追加
 
-`.claude/skills/` から各スキルへのシンボリックリンクを作成します：
+このリポジトリをプラグインマーケットプレースとして登録します：
 
 ```bash
-# リポジトリのルートから実行
-ln -s ../../plugins/example-skills/skills/skill-creator .claude/skills/skill-creator
+# ローカルパスから
+claude plugin marketplace add /path/to/ai-tools
+
+# または GitHub リポジトリから
+claude plugin marketplace add j5ik2o/ai-tools
 ```
 
-すべてのスキルを一括インストールする場合：
+### ステップ 2: プラグインのインストール
 
 ```bash
-for skill in plugins/example-skills/skills/*/; do
-  name=$(basename "$skill")
-  ln -s "../../plugins/example-skills/skills/$name" ".claude/skills/$name"
-done
-```
-
-### Codex CLI の場合
-
-`.codex/skills/` から各スキルへのシンボリックリンクを作成します：
-
-```bash
-# リポジトリのルートから実行
-ln -s ../../plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
-```
-
-すべてのスキルを一括インストールする場合：
-
-```bash
-for skill in plugins/example-skills/skills/*/; do
-  name=$(basename "$skill")
-  ln -s "../../plugins/example-skills/skills/$name" ".codex/skills/$name"
-done
+claude plugin install example-skills
 ```
 
 ### インストールの確認
 
 ```bash
-# シンボリックリンクが正しく作成されたか確認
-ls -la .claude/skills/skill-creator
-# 以下のように表示されるはず: skill-creator -> ../../plugins/example-skills/skills/skill-creator
+claude plugin list
 ```
 
 ## アンインストール
 
-シンボリックリンクを削除します（スキルファイル自体は削除されません）：
+```bash
+claude plugin uninstall example-skills
+```
+
+マーケットプレースの登録も解除する場合：
 
 ```bash
-# Claude Code
-rm .claude/skills/skill-creator
-
-# Codex CLI
-rm .codex/skills/skill-creator
+claude plugin marketplace remove j5ik2o-agent-skills
 ```
 
 ## スキルの構造
