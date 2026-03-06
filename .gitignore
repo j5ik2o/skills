@@ -65,3 +65,7 @@ __pycahce__/
 .serena/
 .kiro/
 openspec/
+
+.mcp.json
+scripts/generate-agents-md.sh
+scripts/run-*.sh
