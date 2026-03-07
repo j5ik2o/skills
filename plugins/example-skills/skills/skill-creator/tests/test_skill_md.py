@@ -108,6 +108,6 @@ def test_skill_trigger(entry, skill_info, project_root):
     assert triggered == should_trigger, (
         f"\nQuery        : {query}"
         f"\nExpected     : {'trigger' if should_trigger else 'no trigger'}"
-        f"\nTrigger rate : {rate:.0%} ({int(rate * RUNS_PER_QUERY)}/{RUNS_PER_QUERY})"
+        f"\nTrigger rate : {rate:.0%} ({round(rate * RUNS_PER_QUERY)}/{RUNS_PER_QUERY})"
         f"\nThreshold    : {TRIGGER_THRESHOLD:.0%}"
     )
