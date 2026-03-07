@@ -1,0 +1,41 @@
+name: skill-creator
+
+on:
+  push:
+    paths:
+      - 'plugins/example-skills/skills/skill-creator/**'
+      - '.github/workflows/skill-creator.yml'
+  pull_request:
+    paths:
+      - 'plugins/example-skills/skills/skill-creator/**'
+      - '.github/workflows/skill-creator.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Verify skill-creator scripts
+        run: bash plugins/example-skills/skills/skill-creator/scripts/ci/verify.sh
+
+  verify-skill-md:
+    runs-on: ubuntu-latest
+    if: |
+      vars.SKILL_EVAL_ENABLED == 'true' &&
+      (github.event_name == 'push' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install Claude CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Verify SKILL.md trigger eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: bash plugins/example-skills/skills/skill-creator/scripts/ci/verify_skill_md.sh
