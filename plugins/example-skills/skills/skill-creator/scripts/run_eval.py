@@ -82,7 +82,7 @@ def run_single_query_claude(
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             cwd=project_root,
             env=env,
         )
@@ -171,6 +171,12 @@ def run_single_query_claude(
             if process.poll() is None:
                 process.kill()
                 process.wait()
+            # Check for CLI execution errors
+            if process.returncode and process.returncode != 0:
+                stderr_output = process.stderr.read().decode("utf-8", errors="replace") if process.stderr else ""
+                raise RuntimeError(
+                    f"Claude CLI exited with code {process.returncode}: {stderr_output[:500]}"
+                )
 
         return triggered
     finally:
@@ -221,7 +227,6 @@ def run_single_query_codex(
             get_cli_command(CLI_CODEX, cli_command), "exec",
             "--json",
             "-s", "read-only",
-            "-a", "never",
             "-C", project_root,
             query,
         ]
@@ -231,7 +236,7 @@ def run_single_query_codex(
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             cwd=project_root,
         )
 
@@ -286,6 +291,12 @@ def run_single_query_codex(
             if process.poll() is None:
                 process.kill()
                 process.wait()
+            # Check for CLI execution errors
+            if process.returncode and process.returncode != 0:
+                stderr_output = process.stderr.read().decode("utf-8", errors="replace") if process.stderr else ""
+                raise RuntimeError(
+                    f"Codex CLI exited with code {process.returncode}: {stderr_output[:500]}"
+                )
     finally:
         if skill_dir.exists():
             shutil.rmtree(skill_dir, ignore_errors=True)
@@ -350,6 +361,7 @@ def run_eval(
                 future_to_info[future] = (item, run_idx)
 
         query_triggers: dict[str, list[bool]] = {}
+        query_errors: dict[str, list[str]] = {}
         query_items: dict[str, dict] = {}
         for future in as_completed(future_to_info):
             item, _ = future_to_info[future]
@@ -357,28 +369,46 @@ def run_eval(
             query_items[query] = item
             if query not in query_triggers:
                 query_triggers[query] = []
+                query_errors[query] = []
             try:
                 query_triggers[query].append(future.result())
             except Exception as e:
-                print(f"Warning: query failed: {e}", file=sys.stderr)
-                query_triggers[query].append(False)
+                print(f"Error: query failed: {e}", file=sys.stderr)
+                query_errors[query].append(str(e))
+
+    total_errors = sum(len(errs) for errs in query_errors.values())
+    if total_errors > 0:
+        print(
+            f"Warning: {total_errors} query run(s) failed with errors. "
+            f"Results may be unreliable.",
+            file=sys.stderr,
+        )
 
     for query, triggers in query_triggers.items():
         item = query_items[query]
-        trigger_rate = sum(triggers) / len(triggers)
+        errors = query_errors.get(query, [])
+        effective_runs = len(triggers)
+        if effective_runs > 0:
+            trigger_rate = sum(triggers) / effective_runs
+        else:
+            trigger_rate = 0.0
         should_trigger = item["should_trigger"]
         if should_trigger:
             did_pass = trigger_rate >= trigger_threshold
         else:
             did_pass = trigger_rate < trigger_threshold
-        results.append({
+        result_entry: dict = {
             "query": query,
             "should_trigger": should_trigger,
             "trigger_rate": trigger_rate,
             "triggers": sum(triggers),
-            "runs": len(triggers),
+            "runs": effective_runs,
             "pass": did_pass,
-        })
+        }
+        if errors:
+            result_entry["errors"] = errors
+            result_entry["error_count"] = len(errors)
+        results.append(result_entry)
 
     passed = sum(1 for r in results if r["pass"])
     total = len(results)
@@ -391,6 +421,7 @@ def run_eval(
             "total": total,
             "passed": passed,
             "failed": total - passed,
+            "errors": total_errors,
         },
     }
 

@@ -53,6 +53,115 @@ class TestRunSingleQueryDispatch:
             assert args[-1] == "/custom/codex"
 
 
+class TestCodexCommandArgs:
+    """Verify that the codex exec command is built with valid arguments."""
+
+    def test_no_invalid_approval_flag(self, tmp_path):
+        """Ensure -a flag is not used (removed in current codex CLI)."""
+        project_root = tmp_path / "project"
+        (project_root / ".codex" / "skills").mkdir(parents=True)
+
+        captured_cmd = []
+
+        def capture_popen(cmd, **kwargs):
+            captured_cmd.extend(cmd)
+            mock_proc = MagicMock()
+            mock_proc.poll.side_effect = [0, 0]
+            mock_proc.stdout.read.return_value = b'{"type":"turn.completed"}\n'
+            mock_proc.stderr.read.return_value = b""
+            mock_proc.returncode = 0
+            return mock_proc
+
+        with patch("scripts.run_eval.subprocess.Popen", side_effect=capture_popen):
+            with patch("scripts.run_eval.select.select", return_value=([], [], [])):
+                run_single_query_codex(
+                    "test query", "my-skill", "test desc", 5, str(project_root),
+                )
+
+        assert "-a" not in captured_cmd, "codex exec should not use -a flag"
+        assert "never" not in captured_cmd, "codex exec should not use 'never' argument"
+
+    def test_codex_command_includes_required_flags(self, tmp_path):
+        """Verify codex exec includes --json, -s, -C flags."""
+        project_root = tmp_path / "project"
+        (project_root / ".codex" / "skills").mkdir(parents=True)
+
+        captured_cmd = []
+
+        def capture_popen(cmd, **kwargs):
+            captured_cmd.extend(cmd)
+            mock_proc = MagicMock()
+            mock_proc.poll.side_effect = [0, 0]
+            mock_proc.stdout.read.return_value = b'{"type":"turn.completed"}\n'
+            mock_proc.stderr.read.return_value = b""
+            mock_proc.returncode = 0
+            return mock_proc
+
+        with patch("scripts.run_eval.subprocess.Popen", side_effect=capture_popen):
+            with patch("scripts.run_eval.select.select", return_value=([], [], [])):
+                run_single_query_codex(
+                    "test query", "my-skill", "test desc", 5, str(project_root),
+                )
+
+        assert "exec" in captured_cmd
+        assert "--json" in captured_cmd
+        assert "-s" in captured_cmd
+        assert "read-only" in captured_cmd
+        assert "-C" in captured_cmd
+
+
+class TestCliExitCodeHandling:
+    """Verify that non-zero CLI exit codes raise RuntimeError."""
+
+    def test_codex_nonzero_exit_raises(self, tmp_path):
+        project_root = tmp_path / "project"
+        (project_root / ".codex" / "skills").mkdir(parents=True)
+
+        mock_process = MagicMock()
+        mock_process.poll.side_effect = [0, 0]
+        mock_process.stdout.read.return_value = b""
+        mock_process.stdout.fileno.return_value = 0
+        mock_process.stderr.read.return_value = b"codex: unknown option '-a'"
+        mock_process.returncode = 1
+
+        with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+            with patch("scripts.run_eval.select.select", return_value=([], [], [])):
+                with pytest.raises(RuntimeError, match="Codex CLI exited with code 1"):
+                    run_single_query_codex(
+                        "test query", "my-skill", "test desc", 5, str(project_root),
+                    )
+
+    def test_run_eval_tracks_errors_in_summary(self):
+        """Verify that CLI errors are counted in summary.errors."""
+        eval_set = [
+            {"query": "error query", "should_trigger": True},
+            {"query": "ok query", "should_trigger": True},
+        ]
+
+        def mock_run(query, *args, **kwargs):
+            if query == "error query":
+                raise RuntimeError("CLI crashed")
+            return True
+
+        with patch("scripts.run_eval.ProcessPoolExecutor", ThreadPoolExecutor):
+            with patch("scripts.run_eval.run_single_query", side_effect=mock_run):
+                result = run_eval(
+                    eval_set=eval_set,
+                    skill_name="test",
+                    description="test desc",
+                    num_workers=1,
+                    timeout=10,
+                    project_root=Path("/tmp"),
+                    runs_per_query=1,
+                    cli_type=CLI_CLAUDE,
+                )
+
+        assert result["summary"]["errors"] == 1
+        error_results = [r for r in result["results"] if r.get("errors")]
+        assert len(error_results) == 1
+        assert "CLI crashed" in error_results[0]["errors"][0]
+
+
 class TestRunSingleQueryCodex:
     def _make_process_mock(self, output_lines: list[str]):
         """Create a mock process that yields output_lines then exits."""
@@ -62,6 +171,8 @@ class TestRunSingleQueryCodex:
         mock_process.poll.side_effect = [None, 0, 0]
         mock_process.stdout.read.return_value = output
         mock_process.stdout.fileno.return_value = 0
+        mock_process.stderr.read.return_value = b""
+        mock_process.returncode = 0
         return mock_process
 
     def test_creates_and_cleans_temp_skill(self, tmp_path):
@@ -105,6 +216,8 @@ class TestRunSingleQueryCodex:
             mock_process.poll.side_effect = [None, 0]
             mock_process.stdout.fileno.return_value = 0
             mock_process.stdout.read.return_value = output
+            mock_process.stderr.read.return_value = b""
+            mock_process.returncode = 0
 
             with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
                 # select returns ready on first call so os.read is called
@@ -131,6 +244,8 @@ class TestRunSingleQueryCodex:
         mock_process.poll.side_effect = [None, 0]
         mock_process.stdout.fileno.return_value = 0
         mock_process.stdout.read.return_value = output
+        mock_process.stderr.read.return_value = b""
+        mock_process.returncode = 0
 
         with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
             with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):

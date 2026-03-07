@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import sys
 from pathlib import Path
 
 CLI_CLAUDE = "claude"
@@ -41,9 +42,19 @@ def detect_cli(explicit: str | None = None) -> str:
             raise ValueError(f"Unknown SKILL_CREATOR_EVAL_CLI value: {env_val}. Use 'claude' or 'codex'.")
         return env_val
 
-    if shutil.which(get_cli_command(CLI_CLAUDE)):
+    has_claude = shutil.which(get_cli_command(CLI_CLAUDE))
+    has_codex = shutil.which(get_cli_command(CLI_CODEX))
+
+    if has_claude and has_codex:
+        print(
+            "Warning: Both 'claude' and 'codex' CLIs found. Defaulting to 'claude'. "
+            "Use --cli or SKILL_CREATOR_EVAL_CLI to specify explicitly.",
+            file=sys.stderr,
+        )
         return CLI_CLAUDE
-    if shutil.which(get_cli_command(CLI_CODEX)):
+    if has_claude:
+        return CLI_CLAUDE
+    if has_codex:
         return CLI_CODEX
 
     raise RuntimeError("Neither 'claude' nor 'codex' CLI found in PATH")

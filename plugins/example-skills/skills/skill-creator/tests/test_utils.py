@@ -97,6 +97,14 @@ class TestDetectCli:
         with patch.dict(os.environ, {"SKILL_CREATOR_EVAL_CLI": "codex"}):
             assert detect_cli("claude") == CLI_CLAUDE
 
+    def test_auto_detect_both_warns_and_defaults_claude(self, capsys):
+        with patch.dict(os.environ, {}, clear=True):
+            with patch("scripts.utils.shutil.which", return_value="/usr/bin/found"):
+                result = detect_cli()
+                assert result == CLI_CLAUDE
+                captured = capsys.readouterr()
+                assert "Both" in captured.err
+
 
 class TestFindProjectRoot:
     def test_finds_claude_root(self, tmp_path):

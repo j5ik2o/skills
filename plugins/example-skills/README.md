@@ -1,6 +1,6 @@
 # example-skills
 
-A collection of example skills for Claude Code, demonstrating various capabilities including skill creation, evaluation, and iterative improvement.
+A collection of example skills for Claude Code and Codex CLI, demonstrating various capabilities including skill creation, evaluation, and iterative improvement.
 
 ## Available Skills
 
@@ -10,11 +10,13 @@ A collection of example skills for Claude Code, demonstrating various capabiliti
 
 ## Installation
 
-### Prerequisites
+### For Claude Code
+
+#### Prerequisites
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
 
-### Step 1: Add the Marketplace
+#### Step 1: Add the Marketplace
 
 Register this repository as a plugin marketplace:
 
@@ -26,19 +28,41 @@ claude plugin marketplace add /path/to/ai-tools
 claude plugin marketplace add j5ik2o/ai-tools
 ```
 
-### Step 2: Install the Plugin
+#### Step 2: Install the Plugin
 
 ```bash
 claude plugin install example-skills
 ```
 
-### Verify Installation
+#### Verify Installation
 
 ```bash
 claude plugin list
 ```
 
+### For Codex CLI
+
+#### Prerequisites
+
+- [Codex CLI](https://github.com/openai/codex) installed
+
+#### Setup
+
+Copy or symlink the skill into your project's `.codex/skills/` directory (or `.agents/skills/`):
+
+```bash
+# Copy the skill
+cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
+
+# Or create a symlink
+ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
+```
+
+Codex CLI automatically discovers skills from `.codex/skills/` and `.agents/skills/` directories.
+
 ## Uninstallation
+
+### Claude Code
 
 ```bash
 claude plugin uninstall example-skills
@@ -48,6 +72,14 @@ To remove the marketplace registration as well:
 
 ```bash
 claude plugin marketplace remove j5ik2o-agent-skills
+```
+
+### Codex CLI
+
+Remove the skill directory or symlink:
+
+```bash
+rm -rf .codex/skills/skill-creator
 ```
 
 ## Skill Structure
@@ -62,7 +94,3 @@ skill-name/
 ├── agents/           # Subagent instructions
 └── assets/           # Templates, HTML files, etc.
 ```
-
-## License
-
-See [LICENSE.txt](skills/skill-creator/LICENSE.txt) for details.

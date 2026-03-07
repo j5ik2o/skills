@@ -164,7 +164,7 @@ See `references/schemas.md` for the full schema (including the `assertions` fiel
 
 This section is one continuous sequence — don't stop partway through. Do NOT use `/skill-test` or any other testing skill.
 
-Put results in `.claude/skills-workspaces/<skill-name>/` (relative to the project root). After creating the workspace directory, run `ls` to verify it exists. Within the workspace, organize results by iteration (`iteration-1/`, `iteration-2/`, etc.) and within that, each test case gets a directory (`eval-0/`, `eval-1/`, etc.). Don't create all of this upfront — just create directories as you go.
+Put results in a workspace directory relative to the project root. For Claude Code, use `.claude/skills-workspaces/<skill-name>/`. For Codex CLI, use `.codex/skills-workspaces/<skill-name>/`. After creating the workspace directory, run `ls` to verify it exists. Within the workspace, organize results by iteration (`iteration-1/`, `iteration-2/`, etc.) and within that, each test case gets a directory (`eval-0/`, `eval-1/`, etc.). Don't create all of this upfront — just create directories as you go.
 
 ### Step 1: Spawn all runs (with-skill AND baseline) in the same turn
 
@@ -405,6 +405,8 @@ python -m scripts.run_loop \
 The `--cli` flag selects which CLI to use (`claude` or `codex`). If omitted, the script auto-detects based on which CLI is available in PATH. You can also set the `SKILL_CREATOR_EVAL_CLI` environment variable.
 
 Use the model ID from your system prompt (the one powering the current session) so the triggering test matches what the user actually experiences.
+
+**Note on architecture:** The `--cli` flag controls which CLI is used to *evaluate* whether a skill triggers (Claude Code or Codex CLI). The description *improvement* step always uses the Anthropic API directly (via the `anthropic` Python package) regardless of which CLI is selected for evaluation. This means `ANTHROPIC_API_KEY` must be set even when using `--cli codex`.
 
 While it runs, periodically tail the output to give the user updates on which iteration it's on and what the scores look like.
 
