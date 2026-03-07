@@ -9,6 +9,7 @@ on:
     paths:
       - 'plugins/example-skills/skills/skill-creator/**'
       - '.github/workflows/skill-creator.yml'
+  workflow_dispatch:
 
 jobs:
   verify:
