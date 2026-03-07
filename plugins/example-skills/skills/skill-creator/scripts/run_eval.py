@@ -134,8 +134,6 @@ def run_single_query_claude(
                                 if tool_name in ("Skill", "Read"):
                                     pending_tool_name = tool_name
                                     accumulated_json = ""
-                                else:
-                                    return False
 
                         elif se_type == "content_block_delta" and pending_tool_name:
                             delta = se.get("delta", {})
