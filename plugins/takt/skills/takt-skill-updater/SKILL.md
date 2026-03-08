@@ -13,7 +13,7 @@ description: >
 
 references/taktサブモジュール更新後に、takt-*スキル群を最新バージョンに追従させる。
 
-> **前提 takt バージョン**: v0.30.0
+> **前提 takt バージョン**: v0.31.0
 
 ## パス表記について
 
@@ -96,7 +96,7 @@ ls references/takt/builtins/ja/pieces/
 ls references/takt/builtins/ja/*STYLE_GUIDE*.md
 
 # ビルトインファセットの確認
-ls references/takt/builtins/ja/{personas,policies,instructions,knowledge,output-contracts}/
+ls references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,output-contracts}/
 ```
 
 チェックポイント:
