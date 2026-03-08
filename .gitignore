@@ -56,7 +56,10 @@ Temporary Items
 .vscode/
 __pycahce__/
 
-.agents/
+/.agents/CC-SDD.md
+/.agents/commands/
+/.agents/rules/
+/.agents/skills/*
 .claude/
 .codex*/
 .gemini/
@@ -70,4 +73,5 @@ openspec/
 scripts/generate-agents-md.sh
 scripts/run-*.sh
 
-!.agents/skills/takt-*
+!/scripts/run-takt.sh
+!/.agents/skills/takt-*
