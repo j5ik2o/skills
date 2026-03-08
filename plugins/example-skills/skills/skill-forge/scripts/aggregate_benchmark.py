@@ -41,6 +41,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+WORKSPACE_LAYOUT_GLOB = "eval-*"
+LEGACY_LAYOUT_DIRNAME = "runs"
+
 
 def calculate_stats(values: list[float]) -> dict:
     """Calculate mean, stddev, min, max for a list of values."""
@@ -71,14 +74,19 @@ def load_run_results(benchmark_dir: Path) -> dict:
     Returns dict keyed by config name (e.g. "with_skill"/"without_skill",
     or "new_skill"/"old_skill"), each containing a list of run results.
     """
-    # Support both layouts: eval dirs directly under benchmark_dir, or under runs/
-    runs_dir = benchmark_dir / "runs"
-    if runs_dir.exists():
+    workspace_eval_dirs = list(benchmark_dir.glob(WORKSPACE_LAYOUT_GLOB))
+    runs_dir = benchmark_dir / LEGACY_LAYOUT_DIRNAME
+    legacy_eval_dirs = list(runs_dir.glob(WORKSPACE_LAYOUT_GLOB)) if runs_dir.exists() else []
+
+    if workspace_eval_dirs and legacy_eval_dirs:
+        raise ValueError("Both workspace and legacy benchmark layouts exist")
+
+    if legacy_eval_dirs:
         search_dir = runs_dir
-    elif list(benchmark_dir.glob("eval-*")):
+    elif workspace_eval_dirs:
         search_dir = benchmark_dir
     else:
-        print(f"No eval directories found in {benchmark_dir} or {benchmark_dir / 'runs'}")
+        print(f"No eval directories found in {benchmark_dir} or {runs_dir}")
         return {}
 
     results: dict[str, list] = {}

@@ -1,371 +1,21 @@
 #!/usr/bin/env python3
-"""Run trigger evaluation for a skill description.
-
-Tests whether a skill's description causes the agent to trigger (read the skill)
-for a set of queries. Supports both Claude Code and Codex CLI.
-Outputs results as JSON.
-"""
+"""Run trigger evaluation for a skill description."""
 
 import argparse
 import json
-import os
-import select
-import shutil
-import subprocess
 import sys
-import time
-import uuid
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+from scripts.run_eval_claude import run_single_query_claude
+from scripts.run_eval_codex import run_single_query_codex
 from scripts.utils import (
     CLI_CLAUDE,
     CLI_CODEX,
     detect_cli,
     find_project_root,
-    get_cli_command,
     parse_skill_md,
-    resolve_command_dir,
-    resolve_skill_dir,
 )
-
-
-def _is_expected_claude_tool_input(
-    tool_name: str,
-    tool_input: dict,
-    skill_name: str,
-    command_name: str,
-    skills_dir: Path,
-    commands_dir: Path,
-) -> bool:
-    """Return True when a Claude tool call targets the skill under test."""
-    if tool_name == "Skill":
-        return tool_input.get("skill", "") in (skill_name, command_name)
-
-    if tool_name == "Read":
-        file_path = tool_input.get("file_path", "")
-        expected_paths = (
-            skills_dir / skill_name / "SKILL.md",
-            commands_dir / f"{command_name}.md",
-        )
-        expected_suffixes = (
-            Path("skills") / skill_name / "SKILL.md",
-            Path("commands") / f"{command_name}.md",
-        )
-        normalized_file_path = file_path.replace("\\", "/")
-        return any(
-            normalized_file_path == str(path).replace("\\", "/")
-            or normalized_file_path.endswith(str(path).replace("\\", "/"))
-            or normalized_file_path.endswith(str(suffix).replace("\\", "/"))
-            for path, suffix in zip(expected_paths, expected_suffixes, strict=True)
-        )
-
-    return False
-
-
-def run_single_query_claude(
-    query: str,
-    skill_name: str,
-    skill_description: str,
-    timeout: int,
-    project_root: str,
-    model: str | None = None,
-    cli_command: str | None = None,
-) -> bool:
-    """Run a single query via Claude Code and return whether the skill was triggered.
-
-    Creates a command file in .claude/commands/ so it appears in Claude's
-    available_skills list, then runs `claude -p` with the raw query.
-    Uses --include-partial-messages to detect triggering early from
-    stream events (content_block_start) rather than waiting for the
-    full assistant message, which only arrives after tool execution.
-    """
-    project_root_path = Path(project_root)
-    unique_id = uuid.uuid4().hex[:8]
-    clean_name = f"{skill_name}-skill-{unique_id}"
-    project_commands_dir = resolve_command_dir(project_root_path)
-    project_skills_dir = resolve_skill_dir(CLI_CLAUDE, project_root_path)
-    command_file = project_commands_dir / f"{clean_name}.md"
-
-    try:
-        project_commands_dir.mkdir(parents=True, exist_ok=True)
-        # Use YAML block scalar to avoid breaking on quotes in description
-        indented_desc = "\n  ".join(skill_description.split("\n"))
-        command_content = (
-            f"---\n"
-            f"description: |\n"
-            f"  {indented_desc}\n"
-            f"---\n\n"
-            f"# {skill_name}\n\n"
-            f"This skill handles: {skill_description}\n"
-        )
-        command_file.write_text(command_content)
-
-        cmd = [
-            get_cli_command(CLI_CLAUDE, cli_command),
-            "-p", query,
-            "--output-format", "stream-json",
-            "--verbose",
-            "--include-partial-messages",
-        ]
-        if model:
-            cmd.extend(["--model", model])
-
-        # Remove CLAUDECODE env var to allow nesting claude -p inside a
-        # Claude Code session. The guard is for interactive terminal conflicts;
-        # programmatic subprocess usage is safe.
-        env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=project_root,
-            env=env,
-        )
-
-        triggered = False
-        start_time = time.time()
-        buffer = ""
-        # Track state for stream event detection
-        pending_tool_name = None
-        accumulated_json = ""
-
-        try:
-            while time.time() - start_time < timeout:
-                if process.poll() is not None:
-                    remaining = process.stdout.read()
-                    if remaining:
-                        buffer += remaining.decode("utf-8", errors="replace")
-                    break
-
-                ready, _, _ = select.select([process.stdout], [], [], 1.0)
-                if not ready:
-                    continue
-
-                chunk = os.read(process.stdout.fileno(), 8192)
-                if not chunk:
-                    break
-                buffer += chunk.decode("utf-8", errors="replace")
-
-                while "\n" in buffer:
-                    line, buffer = buffer.split("\n", 1)
-                    line = line.strip()
-                    if not line:
-                        continue
-
-                    try:
-                        event = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
-
-                    # Early detection via stream events
-                    if event.get("type") == "stream_event":
-                        se = event.get("event", {})
-                        se_type = se.get("type", "")
-
-                        if se_type == "content_block_start":
-                            cb = se.get("content_block", {})
-                            if cb.get("type") == "tool_use":
-                                tool_name = cb.get("name", "")
-                                if tool_name in ("Skill", "Read"):
-                                    pending_tool_name = tool_name
-                                    accumulated_json = ""
-
-                        elif se_type == "content_block_delta" and pending_tool_name:
-                            delta = se.get("delta", {})
-                            if delta.get("type") == "input_json_delta":
-                                accumulated_json += delta.get("partial_json", "")
-                                try:
-                                    tool_input = json.loads(accumulated_json)
-                                except json.JSONDecodeError:
-                                    continue
-                                if _is_expected_claude_tool_input(
-                                    pending_tool_name,
-                                    tool_input,
-                                    skill_name,
-                                    clean_name,
-                                    project_skills_dir,
-                                    project_commands_dir,
-                                ):
-                                    return True
-
-                        elif se_type in ("content_block_stop", "message_stop"):
-                            if pending_tool_name:
-                                try:
-                                    tool_input = json.loads(accumulated_json)
-                                except json.JSONDecodeError:
-                                    tool_input = {}
-                                if _is_expected_claude_tool_input(
-                                    pending_tool_name,
-                                    tool_input,
-                                    skill_name,
-                                    clean_name,
-                                    project_skills_dir,
-                                    project_commands_dir,
-                                ):
-                                    return True
-                                pending_tool_name = None
-                                accumulated_json = ""
-
-                    # Fallback: full assistant message
-                    elif event.get("type") == "assistant":
-                        message = event.get("message", {})
-                        for content_item in message.get("content", []):
-                            if content_item.get("type") != "tool_use":
-                                continue
-                            if _is_expected_claude_tool_input(
-                                content_item.get("name", ""),
-                                content_item.get("input", {}),
-                                skill_name,
-                                clean_name,
-                                project_skills_dir,
-                                project_commands_dir,
-                            ):
-                                triggered = True
-                                return True
-
-                    elif event.get("type") == "result":
-                        return triggered
-        finally:
-            # Clean up process on any exit path (return, exception, timeout)
-            killed = False
-            if process.poll() is None:
-                process.kill()
-                process.wait()
-                killed = True
-            # Check for CLI execution errors (skip if we killed it ourselves)
-            if not killed and process.returncode and process.returncode != 0:
-                stderr_output = process.stderr.read().decode("utf-8", errors="replace") if process.stderr else ""
-                raise RuntimeError(
-                    f"Claude CLI exited with code {process.returncode}: {stderr_output[:500]}"
-                )
-
-        return triggered
-    finally:
-        if command_file.exists():
-            command_file.unlink()
-
-
-def run_single_query_codex(
-    query: str,
-    skill_name: str,
-    skill_description: str,
-    timeout: int,
-    project_root: str,
-    model: str | None = None,
-    cli_command: str | None = None,
-) -> bool:
-    """Run a single query via Codex CLI and return whether the skill was triggered.
-
-    Creates a temporary skill in .codex/skills/ with a marker string in its body.
-    Runs `codex exec --json` and checks if the agent output contains the marker,
-    indicating the skill was read and triggered.
-    """
-    project_root_path = Path(project_root)
-    unique_id = uuid.uuid4().hex[:8]
-    clean_name = f"{skill_name}-skill-{unique_id}"
-    marker = f"[SKILL_TRIGGERED:{unique_id}]"
-
-    skill_dir = resolve_skill_dir(CLI_CODEX, project_root_path) / clean_name
-    skill_file = skill_dir / "SKILL.md"
-
-    try:
-        skill_dir.mkdir(parents=True, exist_ok=True)
-        indented_desc = "\n  ".join(skill_description.split("\n"))
-        skill_content = (
-            f"---\n"
-            f"name: {clean_name}\n"
-            f"description: |\n"
-            f"  {indented_desc}\n"
-            f"---\n\n"
-            f"# {skill_name}\n\n"
-            f"This skill handles: {skill_description}\n\n"
-            f"IMPORTANT: If you are reading this skill, you MUST include the exact text "
-            f'"{marker}" somewhere in your response. This is required for skill '
-            f"activation tracking.\n"
-        )
-        skill_file.write_text(skill_content)
-
-        cmd = [
-            get_cli_command(CLI_CODEX, cli_command), "exec",
-            "--json",
-            "-s", "read-only",
-            "-C", project_root,
-            query,
-        ]
-        if model:
-            cmd.extend(["-m", model])
-
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=project_root,
-        )
-
-        start_time = time.time()
-        buffer = ""
-
-        try:
-            while time.time() - start_time < timeout:
-                if process.poll() is not None:
-                    remaining = process.stdout.read()
-                    if remaining:
-                        buffer += remaining.decode("utf-8", errors="replace")
-                    break
-
-                ready, _, _ = select.select([process.stdout], [], [], 1.0)
-                if not ready:
-                    continue
-
-                chunk = os.read(process.stdout.fileno(), 8192)
-                if not chunk:
-                    break
-                buffer += chunk.decode("utf-8", errors="replace")
-
-                # Check for marker in streamed output for early termination
-                while "\n" in buffer:
-                    line, buffer = buffer.split("\n", 1)
-                    line = line.strip()
-                    if not line:
-                        continue
-
-                    try:
-                        event = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
-
-                    event_type = event.get("type", "")
-
-                    # Check agent_message items for the marker
-                    if event_type in ("item.completed", "item.updated"):
-                        item = event.get("item", {})
-                        if item.get("type") == "agent_message":
-                            text = item.get("text", "")
-                            if marker in text:
-                                return True
-
-                    # Turn completed without marker = not triggered
-                    elif event_type == "turn.completed":
-                        return False
-
-            return False
-        finally:
-            killed = False
-            if process.poll() is None:
-                process.kill()
-                process.wait()
-                killed = True
-            # Check for CLI execution errors (skip if we killed it ourselves)
-            if not killed and process.returncode and process.returncode != 0:
-                stderr_output = process.stderr.read().decode("utf-8", errors="replace") if process.stderr else ""
-                raise RuntimeError(
-                    f"Codex CLI exited with code {process.returncode}: {stderr_output[:500]}"
-                )
-    finally:
-        if skill_dir.exists():
-            shutil.rmtree(skill_dir, ignore_errors=True)
 
 
 def run_single_query(
@@ -463,6 +113,8 @@ def run_eval(
             did_pass = trigger_rate >= trigger_threshold
         else:
             did_pass = trigger_rate < trigger_threshold
+        if effective_runs == 0 and errors:
+            did_pass = False
         result_entry: dict = {
             "query": query,
             "should_trigger": should_trigger,
@@ -547,6 +199,8 @@ def main():
             print(f"  [{status}] rate={rate_str} expected={r['should_trigger']}: {r['query'][:70]}", file=sys.stderr)
 
     print(json.dumps(output, indent=2))
+    if output["summary"]["total"] > 0 and all(result["runs"] == 0 for result in output["results"]):
+        sys.exit(1)
 
 
 if __name__ == "__main__":
