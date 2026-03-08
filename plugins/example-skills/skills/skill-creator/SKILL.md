@@ -1,6 +1,14 @@
 ---
 name: skill-creator
-description: Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, update or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.
+description: >-
+  Create or improve Claude Code and Codex skills. Use only when the user
+  explicitly wants help with a skill: creating a new skill, editing a SKILL.md
+  file, testing a skill draft in .claude/skills/.../SKILL.md or
+  .codex/skills/.../SKILL.md, improving an existing skill, debugging why a
+  skill is not triggering, running evals or benchmarks for a skill, or turning
+  a described workflow into a reusable skill. Do not use for generic CI setup,
+  GitHub Actions workflows, or ordinary coding tasks that are not about a
+  skill.
 ---
 
 # Skill Creator
