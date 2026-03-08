@@ -3,11 +3,11 @@ name: skill-creator
 on:
   push:
     paths:
-      - 'plugins/example-skills/skills/skill-creator.j5ik2o/**'
+      - 'plugins/example-skills/skills/skill-creator/**'
       - '.github/workflows/skill-creator.yml'
   pull_request:
     paths:
-      - 'plugins/example-skills/skills/skill-creator.j5ik2o/**'
+      - 'plugins/example-skills/skills/skill-creator/**'
       - '.github/workflows/skill-creator.yml'
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
 
       - name: Verify skill-creator scripts
-        run: bash plugins/example-skills/skills/skill-creator.j5ik2o/scripts/ci/verify.sh
+        run: bash plugins/example-skills/skills/skill-creator/scripts/ci/verify.sh
 
   verify-skill-md:
     runs-on: ubuntu-latest
@@ -38,4 +38,4 @@ jobs:
       - name: Verify SKILL.md trigger eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: bash plugins/example-skills/skills/skill-creator.j5ik2o/scripts/ci/verify_skill_md.sh
+        run: bash plugins/example-skills/skills/skill-creator/scripts/ci/verify_skill_md.sh

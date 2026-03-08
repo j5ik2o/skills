@@ -13,6 +13,9 @@ from scripts.utils import (
     find_project_root,
     get_cli_command,
     parse_skill_md,
+    resolve_cli_home,
+    resolve_command_dir,
+    resolve_skill_dir,
 )
 
 
@@ -134,6 +137,55 @@ class TestFindProjectRoot:
         with patch("scripts.utils.Path.cwd", return_value=sub):
             result = find_project_root(CLI_CLAUDE)
             assert result == sub
+
+    def test_falls_back_to_git_root_when_home_override_is_external(self, tmp_path):
+        project = tmp_path / "myproject"
+        (project / ".git").mkdir(parents=True)
+        sub = project / "src" / "deep"
+        sub.mkdir(parents=True)
+
+        with patch.dict(os.environ, {"CODEX_HOME": str(tmp_path / "external-codex-home")}, clear=True):
+            with patch("scripts.utils.Path.cwd", return_value=sub):
+                result = find_project_root(CLI_CODEX)
+                assert result == project
+
+
+class TestResolveCliHome:
+    def test_claude_home_uses_project_root_by_default(self, tmp_path):
+        project = tmp_path / "project"
+        with patch.dict(os.environ, {}, clear=True):
+            result = resolve_cli_home(CLI_CLAUDE, project)
+            assert result == project / ".claude"
+
+    def test_codex_home_uses_project_root_by_default(self, tmp_path):
+        project = tmp_path / "project"
+        with patch.dict(os.environ, {}, clear=True):
+            result = resolve_cli_home(CLI_CODEX, project)
+            assert result == project / ".codex"
+
+    def test_claude_home_honors_override(self, tmp_path):
+        override = tmp_path / "custom-claude-home"
+        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(override)}, clear=True):
+            result = resolve_cli_home(CLI_CLAUDE, tmp_path / "project")
+            assert result == override
+
+    def test_codex_home_honors_codex_home(self, tmp_path):
+        override = tmp_path / "custom-codex-home"
+        with patch.dict(os.environ, {"CODEX_HOME": str(override)}, clear=True):
+            result = resolve_cli_home(CLI_CODEX, tmp_path / "project")
+            assert result == override
+
+    def test_resolve_command_dir_uses_claude_home(self, tmp_path):
+        override = tmp_path / "custom-claude-home"
+        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(override)}, clear=True):
+            result = resolve_command_dir(tmp_path / "project")
+            assert result == override / "commands"
+
+    def test_resolve_skill_dir_uses_cli_home(self, tmp_path):
+        override = tmp_path / "custom-codex-home"
+        with patch.dict(os.environ, {"CODEX_HOME": str(override)}, clear=True):
+            result = resolve_skill_dir(CLI_CODEX, tmp_path / "project")
+            assert result == override / "skills"
 
 
 class TestParseSkillMd:

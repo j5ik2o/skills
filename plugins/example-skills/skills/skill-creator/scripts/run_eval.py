@@ -25,6 +25,8 @@ from scripts.utils import (
     find_project_root,
     get_cli_command,
     parse_skill_md,
+    resolve_command_dir,
+    resolve_skill_dir,
 )
 
 
@@ -33,6 +35,8 @@ def _is_expected_claude_tool_input(
     tool_input: dict,
     skill_name: str,
     command_name: str,
+    skills_dir: Path,
+    commands_dir: Path,
 ) -> bool:
     """Return True when a Claude tool call targets the skill under test."""
     if tool_name == "Skill":
@@ -41,10 +45,15 @@ def _is_expected_claude_tool_input(
     if tool_name == "Read":
         file_path = tool_input.get("file_path", "")
         expected_paths = (
-            f".claude/skills/{skill_name}/SKILL.md",
-            f".claude/commands/{command_name}.md",
+            skills_dir / skill_name / "SKILL.md",
+            commands_dir / f"{command_name}.md",
         )
-        return any(file_path.endswith(path) or path in file_path for path in expected_paths)
+        normalized_file_path = file_path.replace("\\", "/")
+        return any(
+            normalized_file_path == str(path).replace("\\", "/")
+            or normalized_file_path.endswith(str(path).replace("\\", "/"))
+            for path in expected_paths
+        )
 
     return False
 
@@ -66,9 +75,11 @@ def run_single_query_claude(
     stream events (content_block_start) rather than waiting for the
     full assistant message, which only arrives after tool execution.
     """
+    project_root_path = Path(project_root)
     unique_id = uuid.uuid4().hex[:8]
     clean_name = f"{skill_name}-skill-{unique_id}"
-    project_commands_dir = Path(project_root) / ".claude" / "commands"
+    project_commands_dir = resolve_command_dir(project_root_path)
+    project_skills_dir = resolve_skill_dir(CLI_CLAUDE, project_root_path)
     command_file = project_commands_dir / f"{clean_name}.md"
 
     try:
@@ -169,6 +180,8 @@ def run_single_query_claude(
                                     tool_input,
                                     skill_name,
                                     clean_name,
+                                    project_skills_dir,
+                                    project_commands_dir,
                                 ):
                                     return True
 
@@ -183,6 +196,8 @@ def run_single_query_claude(
                                     tool_input,
                                     skill_name,
                                     clean_name,
+                                    project_skills_dir,
+                                    project_commands_dir,
                                 ):
                                     return True
                                 pending_tool_name = None
@@ -199,6 +214,8 @@ def run_single_query_claude(
                                 content_item.get("input", {}),
                                 skill_name,
                                 clean_name,
+                                project_skills_dir,
+                                project_commands_dir,
                             ):
                                 triggered = True
                                 return True
@@ -240,11 +257,12 @@ def run_single_query_codex(
     Runs `codex exec --json` and checks if the agent output contains the marker,
     indicating the skill was read and triggered.
     """
+    project_root_path = Path(project_root)
     unique_id = uuid.uuid4().hex[:8]
     clean_name = f"{skill_name}-skill-{unique_id}"
     marker = f"[SKILL_TRIGGERED:{unique_id}]"
 
-    skill_dir = Path(project_root) / ".codex" / "skills" / clean_name
+    skill_dir = resolve_skill_dir(CLI_CODEX, project_root_path) / clean_name
     skill_file = skill_dir / "SKILL.md"
 
     try:

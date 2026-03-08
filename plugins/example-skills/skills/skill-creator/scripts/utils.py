@@ -9,6 +9,13 @@ CLI_CLAUDE = "claude"
 CLI_CODEX = "codex"
 
 
+def get_default_cli_home_name(cli_type: str) -> str:
+    """Return the default home directory name for the CLI."""
+    if cli_type == CLI_CODEX:
+        return ".codex"
+    return ".claude"
+
+
 def get_cli_command(cli_type: str, explicit_path: str | None = None) -> str:
     """Return the actual CLI command for the given CLI type.
 
@@ -63,15 +70,37 @@ def detect_cli(explicit: str | None = None) -> str:
 def find_project_root(cli_type: str = CLI_CLAUDE) -> Path:
     """Find the project root by walking up from cwd.
 
-    Looks for .claude/ (Claude Code) or .codex/ (Codex CLI).
+    Prefers the nearest CLI home marker and falls back to the nearest git root.
     """
     current = Path.cwd()
-    marker = ".claude" if cli_type == CLI_CLAUDE else ".codex"
+    marker = get_default_cli_home_name(cli_type)
     for parent in [current, *current.parents]:
         if (parent / marker).is_dir():
             return parent
+        if (parent / ".git").exists():
+            return parent
     return current
 
+
+def resolve_cli_home(cli_type: str, project_root: Path | None = None) -> Path:
+    """Resolve the effective CLI home directory."""
+    override_var = "SKILL_CREATOR_CLAUDE_HOME" if cli_type == CLI_CLAUDE else "CODEX_HOME"
+    override = os.environ.get(override_var)
+    if override:
+        return Path(override).expanduser()
+
+    base_root = project_root if project_root is not None else find_project_root(cli_type)
+    return base_root / get_default_cli_home_name(cli_type)
+
+
+def resolve_skill_dir(cli_type: str, project_root: Path | None = None) -> Path:
+    """Resolve the effective skills directory for the CLI."""
+    return resolve_cli_home(cli_type, project_root) / "skills"
+
+
+def resolve_command_dir(project_root: Path | None = None) -> Path:
+    """Resolve the effective Claude commands directory."""
+    return resolve_cli_home(CLI_CLAUDE, project_root) / "commands"
 
 
 def parse_skill_md(skill_path: Path) -> tuple[str, str, str]:

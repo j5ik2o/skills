@@ -17,6 +17,8 @@ from scripts.run_eval import (
 )
 from scripts.utils import CLI_CLAUDE, CLI_CODEX
 
+SKILL_NAME = "skill-creator"
+
 
 class TestRunSingleQueryDispatch:
     def test_dispatches_to_claude(self):
@@ -183,7 +185,7 @@ class TestRunSingleQueryClaude:
                 "type": "assistant",
                 "message": {
                     "content": [
-                        {"type": "tool_use", "name": "Skill", "input": {"skill": "skill-creator.j5ik2o"}},
+                        {"type": "tool_use", "name": "Skill", "input": {"skill": SKILL_NAME}},
                     ],
                 },
             }),
@@ -197,7 +199,7 @@ class TestRunSingleQueryClaude:
                 with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
                     with patch("scripts.run_eval.os.read", return_value=output):
                         result = run_single_query_claude(
-                            "test query", "skill-creator.j5ik2o", "test desc", 5, str(project_root),
+                            "test query", SKILL_NAME, "test desc", 5, str(project_root),
                         )
 
         assert result is True
@@ -219,7 +221,7 @@ class TestRunSingleQueryClaude:
                 "type": "assistant",
                 "message": {
                     "content": [
-                        {"type": "tool_use", "name": "Skill", "input": {"skill": "skill-creator.j5ik2o"}},
+                        {"type": "tool_use", "name": "Skill", "input": {"skill": SKILL_NAME}},
                     ],
                 },
             }),
@@ -233,7 +235,7 @@ class TestRunSingleQueryClaude:
                 with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
                     with patch("scripts.run_eval.os.read", return_value=output):
                         result = run_single_query_claude(
-                            "test query", "skill-creator.j5ik2o", "test desc", 5, str(project_root),
+                            "test query", SKILL_NAME, "test desc", 5, str(project_root),
                         )
 
         assert result is True
@@ -251,7 +253,7 @@ class TestRunSingleQueryClaude:
                             "type": "tool_use",
                             "name": "Read",
                             "input": {
-                                "file_path": str(project_root / ".claude" / "skills" / "skill-creator.j5ik2o" / "SKILL.md"),
+                                "file_path": str(project_root / ".claude" / "skills" / SKILL_NAME / "SKILL.md"),
                             },
                         },
                     ],
@@ -267,8 +269,68 @@ class TestRunSingleQueryClaude:
                 with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
                     with patch("scripts.run_eval.os.read", return_value=output):
                         result = run_single_query_claude(
-                            "test query", "skill-creator.j5ik2o", "test desc", 5, str(project_root),
+                            "test query", SKILL_NAME, "test desc", 5, str(project_root),
                         )
+
+        assert result is True
+
+    def test_uses_override_claude_home_for_temp_command(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        claude_home = tmp_path / "custom-claude-home"
+
+        events = [
+            json.dumps({"type": "result"}),
+        ]
+        mock_process, output = self._make_process_mock(events)
+
+        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(claude_home)}, clear=True):
+            with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
+                mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
+                with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                    with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
+                        with patch("scripts.run_eval.os.read", return_value=output):
+                            result = run_single_query_claude(
+                                "test query", SKILL_NAME, "test desc", 5, str(project_root),
+                            )
+
+        assert result is False
+        assert (claude_home / "commands").is_dir()
+        assert not (project_root / ".claude").exists()
+
+    def test_detects_skill_path_from_override_claude_home(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        claude_home = tmp_path / "custom-claude-home"
+
+        events = [
+            json.dumps({
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Read",
+                            "input": {
+                                "file_path": str(claude_home / "skills" / SKILL_NAME / "SKILL.md"),
+                            },
+                        },
+                    ],
+                },
+            }),
+            json.dumps({"type": "result"}),
+        ]
+        mock_process, output = self._make_process_mock(events)
+
+        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(claude_home)}, clear=True):
+            with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
+                mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
+                with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                    with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
+                        with patch("scripts.run_eval.os.read", return_value=output):
+                            result = run_single_query_claude(
+                                "test query", SKILL_NAME, "test desc", 5, str(project_root),
+                            )
 
         assert result is True
 
@@ -306,6 +368,28 @@ class TestRunSingleQueryCodex:
         # Temp skill dir should be cleaned up
         skill_dirs = list((project_root / ".codex" / "skills").iterdir())
         assert len(skill_dirs) == 0
+
+    def test_creates_and_cleans_temp_skill_in_codex_home_override(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir(parents=True)
+        codex_home = tmp_path / "custom-codex-home"
+
+        events = [
+            json.dumps({"type": "turn.completed", "usage": {}}),
+        ]
+        mock_process = self._make_process_mock(events)
+
+        with patch.dict(os.environ, {"CODEX_HOME": str(codex_home)}, clear=True):
+            with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                with patch("scripts.run_eval.select.select", return_value=([], [], [])):
+                    result = run_single_query_codex(
+                        "test query", "my-skill", "test desc", 5, str(project_root),
+                    )
+
+        assert result is False
+        assert (codex_home / "skills").is_dir()
+        assert not (project_root / ".codex").exists()
+        assert not any((codex_home / "skills").iterdir())
 
     def test_detects_marker_in_agent_message(self, tmp_path):
         """Verify marker detection in codex JSONL output."""
