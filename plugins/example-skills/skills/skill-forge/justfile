@@ -2,6 +2,6 @@
 verify:
     bash scripts/ci/verify.sh
 
-# SKILL.md のトリガー eval（claude CLI と ANTHROPIC_API_KEY が必要）
+# SKILL.md のトリガー eval（claude CLI が必要）
 verify-skill-md:
     bash scripts/ci/verify_skill_md.sh

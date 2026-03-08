@@ -4,7 +4,6 @@ SKILL.md のトリガー動作を Given/When/Then で検証する。
 前提条件:
   - claude CLI が PATH に存在すること
   - ローカル実行時: Claude Code の認証済みセッション
-  - CI 実行時: ANTHROPIC_API_KEY 環境変数
 
 実行回数・閾値は環境変数で調整可能:
   SKILL_EVAL_RUNS      (default: 3)

@@ -27,12 +27,6 @@ if ! command -v claude &>/dev/null; then
   exit 0
 fi
 
-# CI 環境では ANTHROPIC_API_KEY が必要
-if [[ -n "${CI:-}" ]] && [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-  echo "ERROR: ANTHROPIC_API_KEY is not set in CI." >&2
-  exit 1
-fi
-
 # ── 依存インストール ─────────────────────────────────
 uv sync --group dev
 
