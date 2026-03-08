@@ -410,7 +410,7 @@ python -m scripts.run_loop \
   --verbose
 ```
 
-The `--cli` flag selects which CLI to use (`claude` or `codex`). If omitted, the script auto-detects based on which CLI is available in PATH. You can also set the `SKILL_CREATOR_EVAL_CLI` environment variable.
+The `--cli` flag selects which CLI to use (`claude` or `codex`). If omitted, the script auto-detects based on which CLI is available in PATH. You can also set the `SKILL_FORGE_EVAL_CLI` environment variable.
 
 Use the model ID from your system prompt (the one powering the current session) so the triggering test matches what the user actually experiences.
 

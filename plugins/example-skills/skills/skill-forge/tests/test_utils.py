@@ -25,7 +25,7 @@ class TestGetCliCommand:
         assert result == "/custom/bin/claude"
 
     def test_explicit_path_ignores_env(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_COMMAND": "/env/claude"}):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_COMMAND": "/env/claude"}):
             result = get_cli_command(CLI_CLAUDE, explicit_path="/arg/claude")
             assert result == "/arg/claude"
 
@@ -40,12 +40,12 @@ class TestGetCliCommand:
             assert result == "codex"
 
     def test_claude_env_override(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_COMMAND": "/opt/claude"}):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_COMMAND": "/opt/claude"}):
             result = get_cli_command(CLI_CLAUDE)
             assert result == "/opt/claude"
 
     def test_codex_env_override(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_CODEX_COMMAND": "/opt/codex"}):
+        with patch.dict(os.environ, {"SKILL_FORGE_CODEX_COMMAND": "/opt/codex"}):
             result = get_cli_command(CLI_CODEX)
             assert result == "/opt/codex"
 
@@ -66,18 +66,18 @@ class TestDetectCli:
             detect_cli("invalid")
 
     def test_env_var_claude(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_EVAL_CLI": "claude"}):
+        with patch.dict(os.environ, {"SKILL_FORGE_EVAL_CLI": "claude"}):
             with patch("scripts.utils.shutil.which", return_value=None):
                 assert detect_cli() == CLI_CLAUDE
 
     def test_env_var_codex(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_EVAL_CLI": "codex"}):
+        with patch.dict(os.environ, {"SKILL_FORGE_EVAL_CLI": "codex"}):
             with patch("scripts.utils.shutil.which", return_value=None):
                 assert detect_cli() == CLI_CODEX
 
     def test_env_var_invalid_raises(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_EVAL_CLI": "bad"}):
-            with pytest.raises(ValueError, match="Unknown SKILL_CREATOR_EVAL_CLI"):
+        with patch.dict(os.environ, {"SKILL_FORGE_EVAL_CLI": "bad"}):
+            with pytest.raises(ValueError, match="Unknown SKILL_FORGE_EVAL_CLI"):
                 detect_cli()
 
     def test_auto_detect_claude_first(self):
@@ -97,7 +97,7 @@ class TestDetectCli:
                     detect_cli()
 
     def test_explicit_overrides_env(self):
-        with patch.dict(os.environ, {"SKILL_CREATOR_EVAL_CLI": "codex"}):
+        with patch.dict(os.environ, {"SKILL_FORGE_EVAL_CLI": "codex"}):
             assert detect_cli("claude") == CLI_CLAUDE
 
     def test_auto_detect_both_warns_and_defaults_claude(self, capsys):
@@ -177,7 +177,7 @@ class TestResolveCliHome:
 
     def test_claude_home_honors_override(self, tmp_path):
         override = tmp_path / "custom-claude-home"
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(override)}, clear=True):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_HOME": str(override)}, clear=True):
             result = resolve_cli_home(CLI_CLAUDE, tmp_path / "project")
             assert result == override
 
@@ -189,7 +189,7 @@ class TestResolveCliHome:
 
     def test_resolve_command_dir_uses_claude_home(self, tmp_path):
         override = tmp_path / "custom-claude-home"
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(override)}, clear=True):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_HOME": str(override)}, clear=True):
             result = resolve_command_dir(tmp_path / "project")
             assert result == override / "commands"
 
