@@ -28,6 +28,27 @@ from scripts.utils import (
 )
 
 
+def _is_expected_claude_tool_input(
+    tool_name: str,
+    tool_input: dict,
+    skill_name: str,
+    command_name: str,
+) -> bool:
+    """Return True when a Claude tool call targets the skill under test."""
+    if tool_name == "Skill":
+        return tool_input.get("skill", "") in (skill_name, command_name)
+
+    if tool_name == "Read":
+        file_path = tool_input.get("file_path", "")
+        expected_paths = (
+            f".claude/skills/{skill_name}/SKILL.md",
+            f".claude/commands/{command_name}.md",
+        )
+        return any(file_path.endswith(path) or path in file_path for path in expected_paths)
+
+    return False
+
+
 def run_single_query_claude(
     query: str,
     skill_name: str,
@@ -134,21 +155,38 @@ def run_single_query_claude(
                                 if tool_name in ("Skill", "Read"):
                                     pending_tool_name = tool_name
                                     accumulated_json = ""
-                                else:
-                                    return False
 
                         elif se_type == "content_block_delta" and pending_tool_name:
                             delta = se.get("delta", {})
                             if delta.get("type") == "input_json_delta":
                                 accumulated_json += delta.get("partial_json", "")
-                                if clean_name in accumulated_json:
+                                try:
+                                    tool_input = json.loads(accumulated_json)
+                                except json.JSONDecodeError:
+                                    continue
+                                if _is_expected_claude_tool_input(
+                                    pending_tool_name,
+                                    tool_input,
+                                    skill_name,
+                                    clean_name,
+                                ):
                                     return True
 
                         elif se_type in ("content_block_stop", "message_stop"):
                             if pending_tool_name:
-                                return clean_name in accumulated_json
-                            if se_type == "message_stop":
-                                return False
+                                try:
+                                    tool_input = json.loads(accumulated_json)
+                                except json.JSONDecodeError:
+                                    tool_input = {}
+                                if _is_expected_claude_tool_input(
+                                    pending_tool_name,
+                                    tool_input,
+                                    skill_name,
+                                    clean_name,
+                                ):
+                                    return True
+                                pending_tool_name = None
+                                accumulated_json = ""
 
                     # Fallback: full assistant message
                     elif event.get("type") == "assistant":
@@ -156,13 +194,14 @@ def run_single_query_claude(
                         for content_item in message.get("content", []):
                             if content_item.get("type") != "tool_use":
                                 continue
-                            tool_name = content_item.get("name", "")
-                            tool_input = content_item.get("input", {})
-                            if tool_name == "Skill" and clean_name in tool_input.get("skill", ""):
+                            if _is_expected_claude_tool_input(
+                                content_item.get("name", ""),
+                                content_item.get("input", {}),
+                                skill_name,
+                                clean_name,
+                            ):
                                 triggered = True
-                            elif tool_name == "Read" and clean_name in tool_input.get("file_path", ""):
-                                triggered = True
-                            return triggered
+                                return True
 
                     elif event.get("type") == "result":
                         return triggered

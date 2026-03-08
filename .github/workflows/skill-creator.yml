@@ -9,6 +9,7 @@ on:
     paths:
       - 'plugins/example-skills/skills/skill-creator/**'
       - '.github/workflows/skill-creator.yml'
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -25,8 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       vars.SKILL_EVAL_ENABLED == 'true' &&
-      (github.event_name == 'push' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
+      github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 

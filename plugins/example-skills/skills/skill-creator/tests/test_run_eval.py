@@ -12,6 +12,7 @@ import pytest
 from scripts.run_eval import (
     run_eval,
     run_single_query,
+    run_single_query_claude,
     run_single_query_codex,
 )
 from scripts.utils import CLI_CLAUDE, CLI_CODEX
@@ -160,6 +161,116 @@ class TestCliExitCodeHandling:
         error_results = [r for r in result["results"] if r.get("errors")]
         assert len(error_results) == 1
         assert "CLI crashed" in error_results[0]["errors"][0]
+
+
+class TestRunSingleQueryClaude:
+    def _make_process_mock(self, output_lines: list[str]):
+        output = ("\n".join(output_lines) + "\n").encode()
+        mock_process = MagicMock()
+        mock_process.poll.side_effect = [None, 0]
+        mock_process.stdout.read.return_value = b""
+        mock_process.stdout.fileno.return_value = 0
+        mock_process.stderr.read.return_value = b""
+        mock_process.returncode = 0
+        return mock_process, output
+
+    def test_detects_canonical_skill_name_from_assistant_tool_use(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        events = [
+            json.dumps({
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "tool_use", "name": "Skill", "input": {"skill": "skill-creator"}},
+                    ],
+                },
+            }),
+            json.dumps({"type": "result"}),
+        ]
+        mock_process, output = self._make_process_mock(events)
+
+        with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
+            mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
+            with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
+                    with patch("scripts.run_eval.os.read", return_value=output):
+                        result = run_single_query_claude(
+                            "test query", "skill-creator", "test desc", 5, str(project_root),
+                        )
+
+        assert result is True
+
+    def test_ignores_non_matching_tool_before_skill_trigger(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        events = [
+            json.dumps({
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "tool_use", "name": "Bash", "input": {"command": "pwd"}},
+                    ],
+                },
+            }),
+            json.dumps({
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "tool_use", "name": "Skill", "input": {"skill": "skill-creator"}},
+                    ],
+                },
+            }),
+            json.dumps({"type": "result"}),
+        ]
+        mock_process, output = self._make_process_mock(events)
+
+        with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
+            mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
+            with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
+                    with patch("scripts.run_eval.os.read", return_value=output):
+                        result = run_single_query_claude(
+                            "test query", "skill-creator", "test desc", 5, str(project_root),
+                        )
+
+        assert result is True
+
+    def test_detects_skill_path_from_read_tool_use(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        events = [
+            json.dumps({
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Read",
+                            "input": {
+                                "file_path": str(project_root / ".claude" / "skills" / "skill-creator" / "SKILL.md"),
+                            },
+                        },
+                    ],
+                },
+            }),
+            json.dumps({"type": "result"}),
+        ]
+        mock_process, output = self._make_process_mock(events)
+
+        with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
+            mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
+            with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
+                    with patch("scripts.run_eval.os.read", return_value=output):
+                        result = run_single_query_claude(
+                            "test query", "skill-creator", "test desc", 5, str(project_root),
+                        )
+
+        assert result is True
 
 
 class TestRunSingleQueryCodex:
