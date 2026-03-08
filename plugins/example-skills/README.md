@@ -6,7 +6,7 @@ A collection of example skills for Claude Code and Codex CLI, demonstrating vari
 
 | Skill | Description |
 |-------|-------------|
-| `skill-creator` | Create new skills, modify and improve existing skills, and measure skill performance with evaluations and benchmarks |
+| `skill-forge` | Create new skills, modify and improve existing skills, and measure skill performance with evaluations and benchmarks |
 
 ## Installation
 
@@ -52,10 +52,10 @@ Copy or symlink the skill into your project's `.codex/skills/` directory (or `.a
 
 ```bash
 # Copy the skill
-cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
+cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
 
 # Or create a symlink
-ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
+ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
 ```
 
 Codex CLI automatically discovers skills from `.codex/skills/` and `.agents/skills/` directories.
@@ -79,7 +79,7 @@ claude plugin marketplace remove j5ik2o-agent-skills
 Remove the skill directory or symlink:
 
 ```bash
-rm -rf .codex/skills/skill-creator
+rm -rf .codex/skills/skill-forge
 ```
 
 ## Skill Structure

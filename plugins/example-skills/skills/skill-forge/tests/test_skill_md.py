@@ -59,7 +59,7 @@ def project_root():
       .claude/commands/              ← run_single_query_claude が一時コマンドファイルを置く場所
       .claude/skills/<skill-name>/   ← claude が SKILL.md 本体を読みに来る場所
     """
-    tmp_dir = tempfile.mkdtemp(prefix="skill-creator-test-")
+    tmp_dir = tempfile.mkdtemp(prefix="skill-forge-test-")
     tmp_path = Path(tmp_dir)
 
     # claude -p requires a git repository to function correctly

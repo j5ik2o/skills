@@ -1,14 +1,14 @@
-name: skill-creator
+name: skill-forge
 
 on:
   push:
     paths:
-      - 'plugins/example-skills/skills/skill-creator/**'
-      - '.github/workflows/skill-creator.yml'
+      - 'plugins/example-skills/skills/skill-forge/**'
+      - '.github/workflows/skill-forge.yml'
   pull_request:
     paths:
-      - 'plugins/example-skills/skills/skill-creator/**'
-      - '.github/workflows/skill-creator.yml'
+      - 'plugins/example-skills/skills/skill-forge/**'
+      - '.github/workflows/skill-forge.yml'
   workflow_dispatch:
 
 jobs:
@@ -19,8 +19,8 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
-      - name: Verify skill-creator scripts
-        run: bash plugins/example-skills/skills/skill-creator/scripts/ci/verify.sh
+      - name: Verify skill-forge scripts
+        run: bash plugins/example-skills/skills/skill-forge/scripts/ci/verify.sh
 
   verify-skill-md:
     runs-on: ubuntu-latest
@@ -38,4 +38,4 @@ jobs:
       - name: Verify SKILL.md trigger eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: bash plugins/example-skills/skills/skill-creator/scripts/ci/verify_skill_md.sh
+        run: bash plugins/example-skills/skills/skill-forge/scripts/ci/verify_skill_md.sh

@@ -6,7 +6,7 @@ Claude Code および Codex CLI 向けのサンプルスキルコレクション
 
 | スキル | 説明 |
 |--------|------|
-| `skill-creator` | 新しいスキルの作成、既存スキルの修正・改善、評価とベンチマークによるスキル性能の測定 |
+| `skill-forge` | 新しいスキルの作成、既存スキルの修正・改善、評価とベンチマークによるスキル性能の測定 |
 
 ## インストール
 
@@ -52,10 +52,10 @@ claude plugin list
 
 ```bash
 # コピーする場合
-cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
+cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
 
 # シンボリックリンクの場合
-ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-creator .codex/skills/skill-creator
+ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
 ```
 
 Codex CLI は `.codex/skills/` および `.agents/skills/` ディレクトリからスキルを自動的に検出します。
@@ -79,7 +79,7 @@ claude plugin marketplace remove j5ik2o-agent-skills
 スキルディレクトリまたはシンボリックリンクを削除します：
 
 ```bash
-rm -rf .codex/skills/skill-creator
+rm -rf .codex/skills/skill-forge
 ```
 
 ## スキルの構造

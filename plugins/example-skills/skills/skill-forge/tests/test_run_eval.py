@@ -17,7 +17,7 @@ from scripts.run_eval import (
 )
 from scripts.utils import CLI_CLAUDE, CLI_CODEX
 
-SKILL_NAME = "skill-creator"
+SKILL_NAME = "skill-forge"
 
 
 class TestRunSingleQueryDispatch:
