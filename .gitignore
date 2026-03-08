@@ -60,7 +60,11 @@ __pycahce__/
 /.agents/commands/
 /.agents/rules/
 /.agents/skills/*
-.claude/
+/.claude/commands/
+/.claude/rules/
+/.claude/settings.json
+/.claude/skills/*
+
 .codex*/
 .gemini/
 .cursor/
@@ -75,3 +79,5 @@ scripts/run-*.sh
 
 !/scripts/run-takt.sh
 !/.agents/skills/takt-*
+!/.agents/skills/skill-creator
+!/.claude/skills/skill-creator
