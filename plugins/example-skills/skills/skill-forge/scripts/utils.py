@@ -1,4 +1,4 @@
-"""Shared utilities for skill-creator scripts."""
+"""Shared utilities for skill-forge scripts."""
 
 import os
 import shutil

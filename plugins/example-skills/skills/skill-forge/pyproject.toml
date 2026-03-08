@@ -1,5 +1,5 @@
 [project]
-name = "skill-creator"
+name = "skill-forge"
 version = "1.0.0"
 requires-python = ">=3.11"
 dependencies = [
