@@ -17,7 +17,7 @@ from scripts.run_eval import (
 )
 from scripts.utils import CLI_CLAUDE, CLI_CODEX
 
-SKILL_NAME = "skill-creator"
+SKILL_NAME = "skill-forge"
 
 
 class TestRunSingleQueryDispatch:
@@ -284,7 +284,7 @@ class TestRunSingleQueryClaude:
         ]
         mock_process, output = self._make_process_mock(events)
 
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(claude_home)}, clear=True):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_HOME": str(claude_home)}, clear=True):
             with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
                 mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
                 with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
@@ -322,7 +322,7 @@ class TestRunSingleQueryClaude:
         ]
         mock_process, output = self._make_process_mock(events)
 
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(claude_home)}, clear=True):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_HOME": str(claude_home)}, clear=True):
             with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
                 mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
                 with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
@@ -358,7 +358,7 @@ class TestRunSingleQueryClaude:
         ]
         mock_process, output = self._make_process_mock(events)
 
-        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(claude_home)}, clear=True):
+        with patch.dict(os.environ, {"SKILL_FORGE_CLAUDE_HOME": str(claude_home)}, clear=True):
             with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
                 mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
                 with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):

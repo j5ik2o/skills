@@ -27,7 +27,7 @@ AIコーディングエージェント向けのスキルコレクションです
 
 | スキル | 説明 |
 |--------|------|
-| [skill-creator](plugins/example-skills/skills/skill-creator) | スキルの新規作成、改善、パフォーマンス測定 |
+| [skill-forge](plugins/example-skills/skills/skill-forge) | スキルの新規作成、改善、パフォーマンス測定 |
 
 ## リポジトリ構成
 
@@ -38,10 +38,10 @@ AIコーディングエージェント向けのスキルコレクションです
 plugins/
 └── example-skills/
     └── skills/
-        └── skill-creator/    # スキル実装（SKILL.md + リソース）
+        └── skill-forge/    # スキル実装（SKILL.md + リソース）
 
 skills/                       # Vercel Skills CLI互換用シンボリックリンク
-└── skill-creator -> ../plugins/example-skills/skills/skill-creator
+└── skill-forge -> ../plugins/example-skills/skills/skill-forge
 
 template/
 └── SKILL.md                  # 新規スキル作成用テンプレート

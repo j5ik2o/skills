@@ -27,7 +27,7 @@ A collection of skills for AI coding agents.
 
 | Skill | Description |
 |-------|-------------|
-| [skill-creator](plugins/example-skills/skills/skill-creator) | Create new skills, modify and improve existing skills, and measure skill performance |
+| [skill-forge](plugins/example-skills/skills/skill-forge) | Create new skills, modify and improve existing skills, and measure skill performance |
 
 ## Repository Structure
 
@@ -38,10 +38,10 @@ A collection of skills for AI coding agents.
 plugins/
 └── example-skills/
     └── skills/
-        └── skill-creator/    # Skill implementation (SKILL.md + resources)
+        └── skill-forge/    # Skill implementation (SKILL.md + resources)
 
 skills/                       # Symlinks for Vercel Skills CLI compatibility
-└── skill-creator -> ../plugins/example-skills/skills/skill-creator
+└── skill-forge -> ../plugins/example-skills/skills/skill-forge
 
 template/
 └── SKILL.md                  # Template for creating new skills

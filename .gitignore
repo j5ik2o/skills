@@ -80,5 +80,5 @@ scripts/run-*.sh
 
 !/scripts/run-takt.sh
 !/.agents/skills/takt-*
-!/.agents/skills/skill-creator
-!/.claude/skills/skill-creator
+!/.agents/skills/skill-forge
+!/.claude/skills/skill-forge

@@ -1,5 +1,5 @@
 ---
-name: skill-creator
+name: skill-forge
 description: >-
   Create or improve Claude Code and Codex skills. Use only when the user
   explicitly wants help with a skill: creating a new skill, editing a SKILL.md
@@ -11,7 +11,7 @@ description: >-
   skill.
 ---
 
-# Skill Creator
+# Skill Forge
 
 A skill for creating new skills and iteratively improving them.
 
@@ -235,7 +235,7 @@ Once all runs are done:
 
 1. **Grade each run** — spawn a grader subagent (or grade inline) that reads `agents/grader.md` and evaluates each assertion against the outputs. Save results to `grading.json` in each run directory. The grading.json expectations array must use the fields `text`, `passed`, and `evidence` (not `name`/`met`/`details` or other variants) — the viewer depends on these exact field names. For assertions that can be checked programmatically, write and run a script rather than eyeballing it — scripts are faster, more reliable, and can be reused across iterations.
 
-2. **Aggregate into benchmark** — run the aggregation script from the skill-creator directory:
+2. **Aggregate into benchmark** — run the aggregation script from the skill-forge directory:
    ```bash
    python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
    ```
@@ -246,7 +246,7 @@ Put each with_skill version before its baseline counterpart.
 
 4. **Launch the viewer** with both qualitative outputs and quantitative data:
    ```bash
-   nohup python <skill-creator-path>/eval-viewer/generate_review.py \
+   nohup python <skill-forge-path>/eval-viewer/generate_review.py \
      <workspace>/iteration-N \
      --skill-name "my-skill" \
      --benchmark <workspace>/iteration-N/benchmark.json \
@@ -410,7 +410,7 @@ python -m scripts.run_loop \
   --verbose
 ```
 
-The `--cli` flag selects which CLI to use (`claude` or `codex`). If omitted, the script auto-detects based on which CLI is available in PATH. You can also set the `SKILL_CREATOR_EVAL_CLI` environment variable.
+The `--cli` flag selects which CLI to use (`claude` or `codex`). If omitted, the script auto-detects based on which CLI is available in PATH. You can also set the `SKILL_FORGE_EVAL_CLI` environment variable.
 
 Use the model ID from your system prompt (the one powering the current session) so the triggering test matches what the user actually experiences.
 
