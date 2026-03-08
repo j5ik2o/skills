@@ -51,13 +51,60 @@ grep -r "前提 takt バージョン" skills/takt-*-builder/SKILL.md skills/takt
 
 バージョンが一致していれば更新不要。差分がある場合は Step 2 に進む。
 
-### Step 2: 差分領域の特定
+### Step 2: タグ間差分の取得
 
-takt のバージョン間で何が変わったかを特定する。以下の領域を順にチェックする。
+Step 1 で特定した旧バージョンと現在のバージョン間の差分を取得する。これにより、どのファイルが変更されたかを把握し、影響のあるスキルだけを効率的に更新できる。
+
+```bash
+cd references/takt
+
+# 旧バージョン（各スキルの前提バージョン）と現バージョンを変数に設定
+OLD_VERSION=v0.30.0
+NEW_VERSION=$(git describe --tags --abbrev=0)
+
+# 変更されたファイル一覧を取得
+git diff --name-only ${OLD_VERSION}..${NEW_VERSION}
+
+# 変更の統計（追加/削除行数）を取得
+git diff --stat ${OLD_VERSION}..${NEW_VERSION}
+
+# 変更履歴（コミットメッセージ）を取得
+git log --oneline ${OLD_VERSION}..${NEW_VERSION}
+```
+
+#### 影響スキルの判定
+
+変更されたファイルパスから、どのスキルに影響があるかを判定する。影響のないスキルは Step 3 の詳細チェックをスキップできる。
+
+| 変更ファイルのパスパターン | 影響スキル |
+|---------------------------|-----------|
+| `src/infra/task/schema.ts` | takt-task-builder |
+| `builtins/**/pieces/*.yaml` | takt-piece-builder |
+| `builtins/**/facets/**` | takt-facet-builder |
+| `builtins/**/*STYLE_GUIDE*.md` | takt-facet-builder |
+| `builtins/skill/references/engine.md` | takt-analyzer, takt-piece-builder |
+| `builtins/skill/references/yaml-schema.md` | takt-piece-builder |
+| `src/**/log*`, `src/**/trace*` | takt-optimizer |
+
+影響がないスキルは「変更なし」として記録し、Step 3 以降の対象から除外する。
+
+### Step 3: 影響スキルの詳細チェック
+
+Step 2 で影響ありと判定されたスキルについて、具体的な変更内容を確認する。変更されたファイルの差分を読み、各スキルへの反映内容を特定する。
+
+```bash
+cd references/takt
+
+# 特定ファイルの詳細差分を確認
+git diff ${OLD_VERSION}..${NEW_VERSION} -- src/infra/task/schema.ts
+git diff ${OLD_VERSION}..${NEW_VERSION} -- builtins/ja/pieces/
+```
+
+以下の領域を、影響ありと判定されたもののみチェックする。
 
 #### a) TaskRecord スキーマ差分（→ takt-task-builder）
 
-`references/takt/src/infra/task/schema.ts` を読み、以下を確認する。
+`references/takt/src/infra/task/schema.ts` の差分を確認する。
 
 チェックポイント:
 
@@ -122,7 +169,7 @@ ls references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,
 | ログフォーマット変更 | ソースコード | `skills/takt-optimizer/SKILL.md` |
 | テンプレート変数の追加 | InstructionBuilder | `skills/takt-task-builder/references/task-schema.md` |
 
-### Step 3: スキル更新の実施
+### Step 4: スキル更新の実施
 
 差分が見つかった領域ごとに更新する。
 
@@ -145,7 +192,7 @@ ls references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,
 | `skills/takt-analyzer/SKILL.md` | 参照パス、分析基準 |
 | `skills/takt-optimizer/SKILL.md` | ログ形式、最適化パラメータ |
 
-### Step 4: バリデーション
+### Step 5: バリデーション
 
 更新後の整合性を確認する。
 
@@ -170,7 +217,7 @@ bash .agents/skills/takt-piece-builder/scripts/validate-takt-files.sh --pieces
 - [ ] `takt-facet-builder/SKILL.md` の参照パスが全て実在する
 - [ ] `takt-analyzer/SKILL.md` の参照パスが全て実在する
 
-### Step 5: コミットとPR
+### Step 6: コミットとPR
 
 更新内容をコミットする。
 
