@@ -103,11 +103,6 @@ def resolve_skill_dir(cli_type: str, project_root: Path | None = None) -> Path:
     return resolve_cli_home(cli_type, project_root) / "skills"
 
 
-def resolve_command_dir(project_root: Path | None = None) -> Path:
-    """Resolve the effective Claude commands directory."""
-    return resolve_cli_home(CLI_CLAUDE, project_root) / "commands"
-
-
 def parse_skill_md(skill_path: Path) -> tuple[str, str, str]:
     """Parse a SKILL.md file, returning (name, description, full_content)."""
     content = (skill_path / "SKILL.md").read_text()

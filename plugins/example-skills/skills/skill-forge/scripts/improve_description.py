@@ -1,44 +1,44 @@
 #!/usr/bin/env python3
-"""Improve a skill description based on eval results.
-
-Takes eval results (from run_eval.py) and generates an improved description
-using Claude with extended thinking.
-"""
+"""Improve a skill description based on eval results."""
 
 import argparse
 import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
-import anthropic
+from scripts.utils import CLI_CLAUDE, CLI_CODEX, detect_cli, find_project_root, get_cli_command, parse_skill_md
 
-from scripts.utils import parse_skill_md
+NEW_DESCRIPTION_PATTERN = re.compile(r"<new_description>(.*?)</new_description>", re.DOTALL)
 
 
-def improve_description(
-    client: anthropic.Anthropic,
+def _extract_description(response_text: str) -> str:
+    """Extract the new description from the model response."""
+    match = NEW_DESCRIPTION_PATTERN.search(response_text)
+    if match:
+        return match.group(1).strip().strip('"')
+    return response_text.strip().strip('"')
+
+
+def _build_prompt(
     skill_name: str,
     skill_content: str,
     current_description: str,
     eval_results: dict,
     history: list[dict],
-    model: str,
     test_results: dict | None = None,
-    log_dir: Path | None = None,
-    iteration: int | None = None,
 ) -> str:
-    """Call Claude to improve the description based on eval results."""
     failed_triggers = [
-        r for r in eval_results["results"]
-        if r["should_trigger"] and not r["pass"]
+        result for result in eval_results["results"]
+        if result["should_trigger"] and not result["pass"]
     ]
     false_triggers = [
-        r for r in eval_results["results"]
-        if not r["should_trigger"] and not r["pass"]
+        result for result in eval_results["results"]
+        if not result["should_trigger"] and not result["pass"]
     ]
 
-    # Build scores summary
     train_score = f"{eval_results['summary']['passed']}/{eval_results['summary']['total']}"
     if test_results:
         test_score = f"{test_results['summary']['passed']}/{test_results['summary']['total']}"
@@ -60,31 +60,35 @@ Current scores ({scores_summary}):
 """
     if failed_triggers:
         prompt += "FAILED TO TRIGGER (should have triggered but didn't):\n"
-        for r in failed_triggers:
-            prompt += f'  - "{r["query"]}" (triggered {r["triggers"]}/{r["runs"]} times)\n'
+        for result in failed_triggers:
+            prompt += f'  - "{result["query"]}" (triggered {result["triggers"]}/{result["runs"]} times)\n'
         prompt += "\n"
 
     if false_triggers:
         prompt += "FALSE TRIGGERS (triggered but shouldn't have):\n"
-        for r in false_triggers:
-            prompt += f'  - "{r["query"]}" (triggered {r["triggers"]}/{r["runs"]} times)\n'
+        for result in false_triggers:
+            prompt += f'  - "{result["query"]}" (triggered {result["triggers"]}/{result["runs"]} times)\n'
         prompt += "\n"
 
     if history:
         prompt += "PREVIOUS ATTEMPTS (do NOT repeat these — try something structurally different):\n\n"
-        for h in history:
-            train_s = f"{h.get('train_passed', h.get('passed', 0))}/{h.get('train_total', h.get('total', 0))}"
-            test_s = f"{h.get('test_passed', '?')}/{h.get('test_total', '?')}" if h.get('test_passed') is not None else None
-            score_str = f"train={train_s}" + (f", test={test_s}" if test_s else "")
-            prompt += f'<attempt {score_str}>\n'
-            prompt += f'Description: "{h["description"]}"\n'
-            if "results" in h:
+        for item in history:
+            train_history = f"{item.get('train_passed', item.get('passed', 0))}/{item.get('train_total', item.get('total', 0))}"
+            test_history = None
+            if item.get("test_passed") is not None:
+                test_history = f"{item.get('test_passed')}/{item.get('test_total', '?')}"
+            score_line = f"train={train_history}"
+            if test_history:
+                score_line += f", test={test_history}"
+            prompt += f"<attempt {score_line}>\n"
+            prompt += f'Description: "{item["description"]}"\n'
+            if "results" in item:
                 prompt += "Train results:\n"
-                for r in h["results"]:
-                    status = "PASS" if r["pass"] else "FAIL"
-                    prompt += f'  [{status}] "{r["query"][:80]}" (triggered {r["triggers"]}/{r["runs"]})\n'
-            if h.get("note"):
-                prompt += f'Note: {h["note"]}\n'
+                for result in item["results"]:
+                    status = "PASS" if result["pass"] else "FAIL"
+                    prompt += f'  [{status}] "{result["query"][:80]}" (triggered {result["triggers"]}/{result["runs"]})\n'
+            if item.get("note"):
+                prompt += f'Note: {item["note"]}\n'
             prompt += "</attempt>\n\n"
 
     prompt += f"""</scores_summary>
@@ -107,78 +111,101 @@ Here are some tips that we've found to work well in writing these descriptions:
 - The description competes with other skills for Claude's attention — make it distinctive and immediately recognizable.
 - If you're getting lots of failures after repeated attempts, change things up. Try different sentence structures or wordings.
 
-I'd encourage you to be creative and mix up the style in different iterations since you'll have multiple opportunities to try different approaches and we'll just grab the highest-scoring one at the end. 
+I'd encourage you to be creative and mix up the style in different iterations since you'll have multiple opportunities to try different approaches and we'll just grab the highest-scoring one at the end.
 
 Please respond with only the new description text in <new_description> tags, nothing else."""
+    return prompt
 
-    response = client.messages.create(
-        model=model,
-        max_tokens=16000,
-        thinking={
-            "type": "enabled",
-            "budget_tokens": 10000,
-        },
-        messages=[{"role": "user", "content": prompt}],
+
+def _build_shorten_prompt(original_prompt: str, prior_response: str, char_count: int) -> str:
+    return (
+        f"{original_prompt}\n\n"
+        f"The previous response was:\n<previous_response>\n{prior_response}\n</previous_response>\n\n"
+        f"That description is {char_count} characters, which exceeds the hard 1024 character limit. "
+        "Rewrite it to be under 1024 characters while preserving the most important trigger words and intent coverage. "
+        "Respond with only the new description in <new_description> tags."
     )
 
-    # Extract thinking and text from response
-    thinking_text = ""
-    text = ""
-    for block in response.content:
-        if block.type == "thinking":
-            thinking_text = block.thinking
-        elif block.type == "text":
-            text = block.text
 
-    # Parse out the <new_description> tags
-    match = re.search(r"<new_description>(.*?)</new_description>", text, re.DOTALL)
-    description = match.group(1).strip().strip('"') if match else text.strip().strip('"')
+def _build_cli_command(prompt: str, model: str, cli_type: str, cli_command: str | None, project_root: Path) -> list[str]:
+    command = [get_cli_command(cli_type, cli_command)]
+    if cli_type == CLI_CODEX:
+        command.extend(["exec", "-s", "read-only", "-C", str(project_root)])
+        if model:
+            command.extend(["-m", model])
+        command.append(prompt)
+        return command
 
-    # Log the transcript
+    command.extend(["-p", prompt])
+    if model:
+        command.extend(["--model", model])
+    return command
+
+
+def _run_prompt(prompt: str, model: str, cli_type: str, cli_command: str | None) -> str:
+    """Run the improvement prompt through the selected CLI."""
+    project_root = find_project_root(cli_type)
+    command = _build_cli_command(prompt, model, cli_type, cli_command, project_root)
+    env = {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
+    completed = subprocess.run(
+        command,
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        raise RuntimeError(
+            f"{cli_type} CLI exited with code {completed.returncode}: {stderr[:500]}"
+        )
+    return completed.stdout.strip()
+
+
+def improve_description(
+    skill_name: str,
+    skill_content: str,
+    current_description: str,
+    eval_results: dict,
+    history: list[dict],
+    model: str,
+    cli_type: str = CLI_CLAUDE,
+    cli_command: str | None = None,
+    test_results: dict | None = None,
+    log_dir: Path | None = None,
+    iteration: int | None = None,
+) -> str:
+    """Generate an improved description using the configured CLI."""
+    prompt = _build_prompt(
+        skill_name=skill_name,
+        skill_content=skill_content,
+        current_description=current_description,
+        eval_results=eval_results,
+        history=history,
+        test_results=test_results,
+    )
+    response_text = _run_prompt(prompt, model, cli_type, cli_command)
+    description = _extract_description(response_text)
+
     transcript: dict = {
         "iteration": iteration,
         "prompt": prompt,
-        "thinking": thinking_text,
-        "response": text,
+        "response": response_text,
         "parsed_description": description,
         "char_count": len(description),
         "over_limit": len(description) > 1024,
     }
 
-    # If over 1024 chars, ask the model to shorten it
     if len(description) > 1024:
-        shorten_prompt = f"Your description is {len(description)} characters, which exceeds the hard 1024 character limit. Please rewrite it to be under 1024 characters while preserving the most important trigger words and intent coverage. Respond with only the new description in <new_description> tags."
-        shorten_response = client.messages.create(
-            model=model,
-            max_tokens=16000,
-            thinking={
-                "type": "enabled",
-                "budget_tokens": 10000,
-            },
-            messages=[
-                {"role": "user", "content": prompt},
-                {"role": "assistant", "content": text},
-                {"role": "user", "content": shorten_prompt},
-            ],
-        )
-
-        shorten_thinking = ""
-        shorten_text = ""
-        for block in shorten_response.content:
-            if block.type == "thinking":
-                shorten_thinking = block.thinking
-            elif block.type == "text":
-                shorten_text = block.text
-
-        match = re.search(r"<new_description>(.*?)</new_description>", shorten_text, re.DOTALL)
-        shortened = match.group(1).strip().strip('"') if match else shorten_text.strip().strip('"')
-
+        shorten_prompt = _build_shorten_prompt(prompt, response_text, len(description))
+        shortened_response = _run_prompt(shorten_prompt, model, cli_type, cli_command)
+        shortened_description = _extract_description(shortened_response)
         transcript["rewrite_prompt"] = shorten_prompt
-        transcript["rewrite_thinking"] = shorten_thinking
-        transcript["rewrite_response"] = shorten_text
-        transcript["rewrite_description"] = shortened
-        transcript["rewrite_char_count"] = len(shortened)
-        description = shortened
+        transcript["rewrite_response"] = shortened_response
+        transcript["rewrite_description"] = shortened_description
+        transcript["rewrite_char_count"] = len(shortened_description)
+        description = shortened_description
 
     transcript["final_description"] = description
 
@@ -196,7 +223,9 @@ def main():
     parser.add_argument("--skill-path", required=True, help="Path to skill directory")
     parser.add_argument("--history", default=None, help="Path to history JSON (previous attempts)")
     parser.add_argument("--model", required=True, help="Model for improvement")
-    parser.add_argument("--verbose", action="store_true", help="Print thinking to stderr")
+    parser.add_argument("--cli", default=None, choices=[CLI_CLAUDE, CLI_CODEX], help="CLI to use (default: auto-detect)")
+    parser.add_argument("--cli-command", default=None, help="Path to CLI binary")
+    parser.add_argument("--verbose", action="store_true", help="Print progress to stderr")
     args = parser.parse_args()
 
     skill_path = Path(args.skill_path)
@@ -209,6 +238,7 @@ def main():
     if args.history:
         history = json.loads(Path(args.history).read_text())
 
+    cli_type = detect_cli(args.cli)
     name, _, content = parse_skill_md(skill_path)
     current_description = eval_results["description"]
 
@@ -216,21 +246,20 @@ def main():
         print(f"Current: {current_description}", file=sys.stderr)
         print(f"Score: {eval_results['summary']['passed']}/{eval_results['summary']['total']}", file=sys.stderr)
 
-    client = anthropic.Anthropic()
     new_description = improve_description(
-        client=client,
         skill_name=name,
         skill_content=content,
         current_description=current_description,
         eval_results=eval_results,
         history=history,
         model=args.model,
+        cli_type=cli_type,
+        cli_command=args.cli_command,
     )
 
     if args.verbose:
         print(f"Improved: {new_description}", file=sys.stderr)
 
-    # Output as JSON with both the new description and updated history
     output = {
         "description": new_description,
         "history": history + [{
