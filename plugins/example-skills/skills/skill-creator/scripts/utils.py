@@ -74,11 +74,16 @@ def find_project_root(cli_type: str = CLI_CLAUDE) -> Path:
     """
     current = Path.cwd()
     marker = get_default_cli_home_name(cli_type)
-    for parent in [current, *current.parents]:
+    parents = [current, *current.parents]
+
+    for parent in parents:
         if (parent / marker).is_dir():
             return parent
+
+    for parent in parents:
         if (parent / ".git").exists():
             return parent
+
     return current
 
 

@@ -334,6 +334,42 @@ class TestRunSingleQueryClaude:
 
         assert result is True
 
+    def test_detects_relative_skill_path_from_read_tool_use(self, tmp_path):
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        claude_home = tmp_path / "custom-claude-home"
+
+        events = [
+            json.dumps({
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Read",
+                            "input": {
+                                "file_path": f"skills/{SKILL_NAME}/SKILL.md",
+                            },
+                        },
+                    ],
+                },
+            }),
+            json.dumps({"type": "result"}),
+        ]
+        mock_process, output = self._make_process_mock(events)
+
+        with patch.dict(os.environ, {"SKILL_CREATOR_CLAUDE_HOME": str(claude_home)}, clear=True):
+            with patch("scripts.run_eval.uuid.uuid4") as mock_uuid:
+                mock_uuid.return_value.hex = "abcd1234xxxxxxxxxxxxxxxx"
+                with patch("scripts.run_eval.subprocess.Popen", return_value=mock_process):
+                    with patch("scripts.run_eval.select.select", return_value=([mock_process.stdout], [], [])):
+                        with patch("scripts.run_eval.os.read", return_value=output):
+                            result = run_single_query_claude(
+                                "test query", SKILL_NAME, "test desc", 5, str(project_root),
+                            )
+
+        assert result is True
+
 
 class TestRunSingleQueryCodex:
     def _make_process_mock(self, output_lines: list[str]):

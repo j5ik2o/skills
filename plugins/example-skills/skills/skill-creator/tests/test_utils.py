@@ -149,6 +149,18 @@ class TestFindProjectRoot:
                 result = find_project_root(CLI_CODEX)
                 assert result == project
 
+    def test_prefers_cli_home_marker_over_nearer_git_root(self, tmp_path):
+        project = tmp_path / "myproject"
+        (project / ".codex").mkdir(parents=True)
+        nested_repo = project / "nested" / "repo"
+        (nested_repo / ".git").mkdir(parents=True)
+        sub = nested_repo / "src"
+        sub.mkdir(parents=True)
+
+        with patch("scripts.utils.Path.cwd", return_value=sub):
+            result = find_project_root(CLI_CODEX)
+            assert result == project
+
 
 class TestResolveCliHome:
     def test_claude_home_uses_project_root_by_default(self, tmp_path):

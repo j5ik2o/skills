@@ -48,11 +48,16 @@ def _is_expected_claude_tool_input(
             skills_dir / skill_name / "SKILL.md",
             commands_dir / f"{command_name}.md",
         )
+        expected_suffixes = (
+            Path("skills") / skill_name / "SKILL.md",
+            Path("commands") / f"{command_name}.md",
+        )
         normalized_file_path = file_path.replace("\\", "/")
         return any(
             normalized_file_path == str(path).replace("\\", "/")
             or normalized_file_path.endswith(str(path).replace("\\", "/"))
-            for path in expected_paths
+            or normalized_file_path.endswith(str(suffix).replace("\\", "/"))
+            for path, suffix in zip(expected_paths, expected_suffixes, strict=True)
         )
 
     return False
