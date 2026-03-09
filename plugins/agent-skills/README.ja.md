@@ -8,6 +8,19 @@ Claude Code および Codex CLI 向けのサンプルスキルコレクション
 |--------|------|
 | `skill-forge` | 新しいスキルの作成、既存スキルの修正・改善、評価とベンチマークによるスキル性能の測定 |
 
+## 由来と差分
+
+`skill-forge` は Anthropic の [`skill-creator`](https://github.com/anthropics/skills/tree/main/skills/skill-creator) をフォークして作成しています。
+
+上流版と比べた主な差分は以下です。
+
+- スキル名を `skill-creator` から `skill-forge` に変更し、トリガー説明も「スキル自体」や `SKILL.md` に明示的に関係する依頼に限定する形へ絞り込みました。
+- Claude Code に加えて Codex CLI を正式に扱うようにし、`.codex/skills/...`、`.agents/skills/...`、`.codex/skills-workspaces/...`、`CODEX_HOME`、`codex exec` を前提にした手順を追記しました。
+- トリガー評価の実行系を CLI ごとに分離し、[`scripts/run_eval_claude.py`](./skills/skill-forge/scripts/run_eval_claude.py) と [`scripts/run_eval_codex.py`](./skills/skill-forge/scripts/run_eval_codex.py) を追加しました。共通の入口は [`scripts/run_eval.py`](./skills/skill-forge/scripts/run_eval.py) です。
+- 評価ワークフローを具体化し、実行ごとの隔離ワーキングディレクトリ、CLI 別の workspace 配置、`evals/benchmarks/README.md` へのベンチマーク蓄積を明示しました。
+- 上流にはないローカル運用向けファイルとして、`pyproject.toml`、`uv.lock`、`justfile`、`evals/evals.json`、CI 検証スクリプト、`tests/` 配下の自動テストを追加しています。
+- プラグイン内のスキル構成では、上流にある `LICENSE.txt` は含めていません。
+
 ## インストール
 
 ### Claude Code の場合
