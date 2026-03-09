@@ -14,6 +14,8 @@ description: >
 
 TAKTの5種類のファセットファイルを個別に作成・編集する。
 
+> **前提 takt バージョン**: v0.31.0
+
 ## 参照資料
 
 ファセット作成時は `references/takt/builtins/ja/` の資料を参照する。
@@ -60,11 +62,11 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 
 | ファセット | ビルトイン例 |
 |-----------|-------------|
-| Persona | coder, planner, architecture-reviewer, qa-reviewer, supervisor, security-reviewer |
+| Persona | coder, planner, architecture-reviewer, qa-reviewer, supervisor, security-reviewer, frontend-reviewer, cqrs-es-reviewer, requirements-reviewer, testing-reviewer, terraform-reviewer, dual-supervisor |
 | Policy | coding, review, testing, qa, ai-antipattern |
-| Instruction | plan, implement, review-arch, review-qa, supervise, fix |
-| Knowledge | architecture, backend, cqrs-es, frontend, security |
-| Output Contract | plan, architecture-review, ai-review, summary, validation |
+| Instruction | plan, implement, implement-after-tests, write-tests-first, team-leader-implement, dual-team-leader-implement, review-arch, review-qa, review-security, review-frontend, review-cqrs-es, review-requirements, review-test, review-terraform, supervise, fix, ai-review, ai-fix, loop-monitor-ai-fix, loop-monitor-reviewers-fix |
+| Knowledge | architecture, backend, cqrs-es, frontend, security, task-decomposition, takt, terraform-aws |
+| Output Contract | plan, architecture-review, ai-review, qa-review, security-review, frontend-review, cqrs-es-review, requirements-review, testing-review, terraform-review, summary, validation |
 
 **再利用判断**: ビルトインで足りる場合はカスタムファセットを作らない。
 
@@ -228,6 +230,10 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 **サイズ目安**: 10-25行（上限30行、認知負荷軽減ルール除く）
 
 **ステータスパターン**: `APPROVE / REJECT`（二値）、`APPROVE / IMPROVE / REJECT`（三値）、`完了`（固定値）
+
+**レビュー出力契約の構造**（v0.30.0〜）:
+- 各指摘に `family_tag` 列を追加（指摘のカテゴリ分類）
+- セクション構成: `new`（新規）→ `persists`（継続）→ `resolved`（解消済み）→ `reopened`（再開）
 
 **禁止事項**:
 - 実行手順（インストラクションの責務）

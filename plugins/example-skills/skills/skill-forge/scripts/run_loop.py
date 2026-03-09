@@ -15,12 +15,10 @@ import time
 import webbrowser
 from pathlib import Path
 
-import anthropic
-
 from scripts.generate_report import generate_html
 from scripts.improve_description import improve_description
 from scripts.run_eval import run_eval
-from scripts.utils import CLI_CLAUDE, detect_cli, find_project_root, get_cli_command, parse_skill_md
+from scripts.utils import CLI_CLAUDE, detect_cli, find_project_root, parse_skill_md
 
 
 def split_eval_set(eval_set: list[dict], holdout: float, seed: int = 42) -> tuple[list[dict], list[dict]]:
@@ -77,7 +75,6 @@ def run_loop(
         train_set = eval_set
         test_set = []
 
-    client = anthropic.Anthropic()
     history = []
     exit_reason = "unknown"
 
@@ -204,13 +201,14 @@ def run_loop(
             for h in history
         ]
         new_description = improve_description(
-            client=client,
             skill_name=name,
             skill_content=content,
             current_description=current_description,
             eval_results=train_results,
             history=blinded_history,
             model=model,
+            cli_type=cli_type,
+            cli_command=cli_command,
             log_dir=log_dir,
             iteration=iteration,
         )

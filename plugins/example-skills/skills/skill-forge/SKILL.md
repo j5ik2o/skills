@@ -1,14 +1,20 @@
 ---
 name: skill-forge
 description: >-
-  Create or improve Claude Code and Codex skills. Use only when the user
-  explicitly wants help with a skill: creating a new skill, editing a SKILL.md
+  Create or improve Claude Code and Codex skills. Use only when the request is
+  explicitly about the skill itself: creating a new skill, editing a SKILL.md
   file, testing a skill draft in .claude/skills/.../SKILL.md or
   .codex/skills/.../SKILL.md, improving an existing skill, debugging why a
   skill is not triggering, running evals or benchmarks for a skill, or turning
-  a described workflow into a reusable skill. Do not use for generic CI setup,
-  GitHub Actions workflows, or ordinary coding tasks that are not about a
-  skill.
+  an already-described workflow into a reusable skill. Trigger on phrases like
+  existing skill, skill draft, SKILL.md, skill trigger, skill eval, make this
+  into a skill, or turn this workflow into a skill. Do not use for ordinary
+  implementation work unless the user explicitly mentions a skill, SKILL.md,
+  or converting the task into a skill. That exclusion includes generic coding
+  tasks, generic automation/workflow setup, CI setup, GitHub Actions
+  workflows, debugging, code review, database migrations, schema changes, and
+  production incident response when the user is just asking for help with the
+  task itself.
 ---
 
 # Skill Forge
@@ -347,6 +353,13 @@ The description field in SKILL.md frontmatter is the primary mechanism that dete
 
 ### Step 1: Generate trigger eval queries
 
+Before drafting queries, read the target skill's `SKILL.md` and extract two short lists:
+
+- `helps with`: the user intents and situations the skill is meant to handle
+- `should not help with`: adjacent requests or keywords that look similar but belong to a different skill or a normal coding/docs workflow
+
+Use those lists to keep the eval set anchored to the target skill's actual boundary instead of generic domain keywords.
+
 Create 20 eval queries — a mix of should-trigger and should-not-trigger. Save as JSON:
 
 ```json
@@ -413,8 +426,7 @@ python -m scripts.run_loop \
 The `--cli` flag selects which CLI to use (`claude` or `codex`). If omitted, the script auto-detects based on which CLI is available in PATH. You can also set the `SKILL_FORGE_EVAL_CLI` environment variable.
 
 Use the model ID from your system prompt (the one powering the current session) so the triggering test matches what the user actually experiences.
-
-**Note on architecture:** The `--cli` flag controls which CLI is used to *evaluate* whether a skill triggers (Claude Code or Codex CLI). The description *improvement* step always uses the Anthropic API directly (via the `anthropic` Python package) regardless of which CLI is selected for evaluation. This means `ANTHROPIC_API_KEY` must be set even when using `--cli codex`.
+The same CLI selection is used for both evaluation and description improvement. No separate Anthropic API client setup is required for the optimization loop.
 
 While it runs, periodically tail the output to give the user updates on which iteration it's on and what the scores look like.
 

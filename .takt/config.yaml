@@ -1,0 +1,5 @@
+provider: codex
+model: gpt-5.4
+concurrency: 1
+base_branch: main
+submodules: all
