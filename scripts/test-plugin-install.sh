@@ -85,17 +85,35 @@ claude plugin list
 # --- 4. スキル認識の確認 (claude -p でスラッシュコマンドを呼び出し) ---
 echo ""
 echo "--- Verify skill recognition ---"
-for skill in $(skill_names); do
-  echo -n "  /$skill ... "
-  # スキルを呼び出して "Unknown skill" が出なければOK
-  output=$(claude -p "/$skill" --print 2>&1 || true)
+RESULT_DIR=$(mktemp -d)
+SKILL_TIMEOUT=30
+
+check_skill() {
+  local skill="$1"
+  local result_dir="$2"
+  local timeout="$3"
+  output=$(timeout "$timeout" claude -p "/$skill" --print 2>&1 || true)
   if echo "$output" | grep -qi "Unknown skill"; then
-    echo "FAIL (Unknown skill)"
+    echo "FAIL" > "$result_dir/$skill"
+  else
+    echo "OK" > "$result_dir/$skill"
+  fi
+}
+export -f check_skill
+export RESULT_DIR SKILL_TIMEOUT
+
+skill_names | xargs -P 3 -I {} bash -c 'check_skill "$@"' _ {} "$RESULT_DIR" "$SKILL_TIMEOUT"
+
+for skill in $(skill_names); do
+  result=$(cat "$RESULT_DIR/$skill" 2>/dev/null || echo "FAIL")
+  if [ "$result" = "FAIL" ]; then
+    echo "  /$skill ... FAIL (Unknown skill)"
     failures=$((failures + 1))
   else
-    echo "OK"
+    echo "  /$skill ... OK"
   fi
 done
+rm -rf "$RESULT_DIR"
 
 # --- 結果 ---
 echo ""
