@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "j5ik2o-agent-skills",
+  "name": "ai-tools",
   "owner": {
     "name": "Junichi Kato",
     "email": "j5ik2o@gmail.com"
