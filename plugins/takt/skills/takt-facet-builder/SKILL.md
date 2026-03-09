@@ -29,7 +29,7 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 | 出力契約ガイド | `references/takt/builtins/ja/OUTPUT_CONTRACT_STYLE_GUIDE.md` | 出力契約記述規約 |
 | Faceted Prompting | `references/takt/docs/faceted-prompting.ja.md` | 5ファセット設計の理論 |
 | テンプレート | `references/takt/builtins/ja/templates/` | 各ファセットのテンプレート |
-| ビルトインファセット | `references/takt/builtins/ja/{personas,policies,instructions,knowledge,output-contracts}/` | 既存ファセット例 |
+| ビルトインファセット | `references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,output-contracts}/` | 既存ファセット例 |
 
 **重要**: ファセット作成前に該当するスタイルガイドを必ず読む。
 

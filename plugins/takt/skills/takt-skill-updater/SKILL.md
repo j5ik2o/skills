@@ -52,7 +52,23 @@ grep -r "前提 takt バージョン" skills/takt-*-builder/SKILL.md skills/takt
 
 各スキルの前提バージョンから旧バージョン（`OLD_VERSION`）を特定する。全スキルが同じバージョンであればその値を使う。異なる場合は最も古いバージョンを `OLD_VERSION` とする。
 
-`OLD_VERSION` と `NEW_VERSION` が一致していれば更新不要。差分がある場合は Step 2 に進む。
+`OLD_VERSION` と `NEW_VERSION` が一致していれば更新不要。差分がある場合は Step 1.5 に進む。
+
+### Step 1.5: リファレンスファイルの同期
+
+サブモジュール更新後、各スキルの `references/takt/` ディレクトリにリファレンスファイルを同期する。
+`rsync --delete` により、サブモジュール側で削除されたファイルもスキル側から自動的に削除される。
+
+```bash
+# dry-run で確認
+scripts/sync-takt-references.sh --dry-run
+
+# 問題なければ実行
+scripts/sync-takt-references.sh
+```
+
+各スキルには自身が参照する takt リソースのサブセットのみが同期される。
+同期対象の定義は `scripts/sync-takt-references.sh` 内の各スキルセクションを参照。
 
 ### Step 2: タグ間差分の取得
 
@@ -192,10 +208,10 @@ bash skills/takt-piece-builder/scripts/validate-takt-files.sh --pieces
 #### 手動検証チェックリスト
 
 - [ ] 全 SKILL.md の `前提 takt バージョン` が `NEW_VERSION` に更新されている
-- [ ] `task-schema.md` のステータス enum が `references/takt/src/infra/task/schema.ts` の `TaskStatusSchema` と一致
+- [ ] `task-schema.md` のステータス enum が `skills/takt-task-builder/references/takt/src/infra/task/schema.ts` の `TaskStatusSchema` と一致
 - [ ] `task-schema.md` のフィールド一覧が `TaskRecordSchema` と `TaskExecutionConfigSchema` の全フィールドを網羅
 - [ ] `task-schema.md` の不変条件テーブルが `superRefine` のバリデーションルールと一致
-- [ ] `takt-piece-builder/SKILL.md` のビルトインテーブルが `references/takt/builtins/ja/pieces/` の実態と整合
+- [ ] `takt-piece-builder/SKILL.md` のビルトインテーブルが `skills/takt-piece-builder/references/takt/builtins/ja/pieces/` の実態と整合
 - [ ] `takt-piece-builder/SKILL.md` で廃止・リネームされたピース名が残っていない
 - [ ] `takt-facet-builder/SKILL.md` の参照パスが全て実在する
 - [ ] `takt-analyzer/SKILL.md` の参照パスが全て実在する

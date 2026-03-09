@@ -27,7 +27,7 @@ description: >
 | エンジン仕様 | `references/takt/builtins/skill/references/engine.md` | ルール評価・実行仕様 |
 | スタイルガイド群 | `references/takt/builtins/ja/*_STYLE_GUIDE.md` | ファセット品質基準 |
 | ビルトインピース | `references/takt/builtins/ja/pieces/` | 構造パターンの参照 |
-| ビルトインファセット | `references/takt/builtins/ja/{personas,policies,instructions,knowledge,output-contracts}/` | ファセット品質の参照 |
+| ビルトインファセット | `references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,output-contracts}/` | ファセット品質の参照 |
 | ログ型定義 | `references/takt/src/core/logging/contracts.ts` | NDJSONレコード型の参照（v0.30.0で `observability` → `logging` にリネーム） |
 | プロバイダイベント | `references/takt/src/core/logging/providerEventLogger.ts` | `*-provider-events.jsonl` の構造 |
 | 利用イベント | `references/takt/src/core/logging/usageEventLogger.ts` | 利用量イベントの構造 |

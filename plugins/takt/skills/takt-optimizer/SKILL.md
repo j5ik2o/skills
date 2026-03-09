@@ -27,7 +27,7 @@ description: >
 | エンジン仕様 | `references/takt/builtins/skill/references/engine.md` | プロンプト構築・トークン消費の理解 |
 | スタイルガイド群 | `references/takt/builtins/ja/*_STYLE_GUIDE.md` | ファセットサイズ上限 |
 | ビルトインピース | `references/takt/builtins/ja/pieces/` | 最適化パターンの参照 |
-| ビルトインファセット | `references/takt/builtins/ja/{personas,policies,instructions,knowledge,output-contracts}/` | ビルトイン置換候補 |
+| ビルトインファセット | `references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,output-contracts}/` | ビルトイン置換候補 |
 
 ## takt-analyzeとの違い
 
