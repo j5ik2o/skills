@@ -84,3 +84,4 @@ scripts/run-*.sh
 !/.claude/skills/skill-forge
 
 .gitmodules
+/.claude/skills-workspaces/
