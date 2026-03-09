@@ -167,21 +167,7 @@ tasks:
 
 **Pattern B: 依存統合（スキーマ + 実装を1タスクに）**
 
-```yaml
-tasks:
-  - name: add-user-profile
-    status: pending
-    piece: default
-    task_dir: .takt/tasks/20260301-100000-dddddd
-    worktree: true
-    branch: feat/user-profile
-    auto_pr: true
-    created_at: "2026-03-01T10:00:00.000Z"
-    started_at: null
-    completed_at: null
-```
-
-order.md 内にスキーマ変更と実装の両方を記述し、1タスクとして実行。
+依存関係のあるタスクは1つに統合する。tasks.yaml のエントリはStep 4の最小構成と同じ。order.md 内にスキーマ変更と実装の両方を記述する。
 
 **Pattern C: 段階実行（先行タスク → マージ → 後続並列）**
 
@@ -363,10 +349,11 @@ tasks:
 
 #### order.md 構造バリデーション
 
-`validate-order-md.sh` を実行して order.md の構造を機械的に検証できる:
+このスキルに同梱されている `scripts/validate-order-md.sh` を実行して order.md の構造を機械的に検証できる。
+スキルの配置先（`.agents/skills/`, `.claude/skills/`, `.codex/skills/` 等）に応じたパスで実行する:
 
 ```bash
-bash .agents/skills/takt-task/scripts/validate-order-md.sh
+bash <このスキルのディレクトリ>/scripts/validate-order-md.sh
 ```
 
 検証項目:
@@ -378,10 +365,11 @@ bash .agents/skills/takt-task/scripts/validate-order-md.sh
 
 #### ピース変更時の追加ゲート（必須）
 
-このタスクで `.takt/pieces/*.yaml` を編集した場合は、完了判定前に以下を必ず実行する。
+このタスクで `.takt/pieces/*.yaml` を編集した場合は、完了判定前に `takt-piece-builder` スキルのバリデーションスクリプトを実行する。
+スキルの配置先に応じたパスで実行する:
 
 ```bash
-bash .agents/skills/takt-piece/scripts/validate-takt-files.sh --pieces
+bash <takt-piece-builderスキルのディレクトリ>/scripts/validate-takt-files.sh --pieces
 ```
 
 追加で、次の2点を確認する:
