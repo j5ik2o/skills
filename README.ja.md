@@ -2,7 +2,13 @@
 
 [English](README.md)
 
-AIエージェントスキルを配布するためのClaude Code Pluginマーケットプレイスです。
+Claude Code と、Codex のようなスキルディレクトリベース CLI 向けに AI エージェントスキルを配布するマーケットプレイス用リポジトリです。
+
+## Highlights
+
+- `.claude-plugin/marketplace.json` から複数の plugin を公開
+- `example-skills` と `takt` などのスキルコレクションを収録
+- `skills/` に直接参照用のシンボリックリンクを保持
 
 ## インストール
 
@@ -13,7 +19,7 @@ AIエージェントスキルを配布するためのClaude Code Pluginマーケ
 /plugin install example-skills@j5ik2o-agent-skills
 ```
 
-### Vercel Skills CLI
+### スキルディレクトリ対応 CLI
 
 ```shell
 npx skills add j5ik2o/ai-tools
@@ -21,42 +27,50 @@ npx skills add j5ik2o/ai-tools
 
 ## プラグイン
 
-### example-skills
-
-AIコーディングエージェント向けのスキルコレクションです。
-
-| スキル | 説明 |
-|--------|------|
-| [skill-forge](plugins/example-skills/skills/skill-forge) | スキルの新規作成、改善、パフォーマンス測定 |
+| Plugin | 説明 | 主なスキル |
+|--------|------|------------|
+| [`example-skills`](plugins/example-skills) | Claude Code / Codex CLI 向けのサンプルスキル集 | [`skill-forge`](plugins/example-skills/skills/skill-forge) |
+| [`takt`](plugins/takt) | TAKT piece engine 向けのマルチエージェント支援スキル集 | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
 
 ## リポジトリ構成
 
-```
+```text
 .claude-plugin/
-└── marketplace.json          # プラグインマーケットプレイスカタログ
+└── marketplace.json
 
 plugins/
-└── example-skills/
+├── example-skills/
+│   ├── README.md
+│   └── skills/
+│       └── skill-forge/
+└── takt/
     └── skills/
-        └── skill-forge/    # スキル実装（SKILL.md + リソース）
+        ├── takt-analyzer/
+        ├── takt-facet-builder/
+        ├── takt-optimizer/
+        ├── takt-piece-builder/
+        ├── takt-skill-updater/
+        └── takt-task-builder/
 
-skills/                       # Vercel Skills CLI互換用シンボリックリンク
-└── skill-forge -> ../plugins/example-skills/skills/skill-forge
+skills/
+├── skill-forge -> ../plugins/example-skills/skills/skill-forge
+├── takt-analyzer -> ../plugins/takt/skills/takt-analyzer
+└── ...
 
 template/
-└── SKILL.md                  # 新規スキル作成用テンプレート
+└── SKILL.md.template
 ```
 
 ## 新しいスキルの作成方法
 
-1. `template/SKILL.md` を `plugins/example-skills/skills/<スキル名>/SKILL.md` にコピー
-2. フロントマター（`name`, `description`）を編集し、指示を記述
-3. Vercel Skills CLI互換のため `skills/` にシンボリックリンクを作成:
+1. `template/SKILL.md.template` を `plugins/example-skills/skills/<スキル名>/SKILL.md` にコピー
+2. フロントマター（`name`, `description`）を編集し、指示を書く
+3. 直接参照する CLI でも使いたい場合は `skills/` にシンボリックリンクを作成:
    ```shell
    ln -s ../plugins/example-skills/skills/<スキル名> skills/<スキル名>
    ```
-4. 新しいプラグインを作る場合は `.claude-plugin/marketplace.json` にエントリを追加
+4. 新しい plugin collection を公開する場合は `.claude-plugin/marketplace.json` を更新
 
 ## ライセンス
 
-各スキルのディレクトリ内のライセンス情報を参照してください。
+各スキル配下のライセンス情報を参照してください。
