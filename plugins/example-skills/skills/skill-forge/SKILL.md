@@ -1,14 +1,20 @@
 ---
 name: skill-forge
 description: >-
-  Create or improve Claude Code and Codex skills. Use only when the user
-  explicitly wants help with a skill: creating a new skill, editing a SKILL.md
+  Create or improve Claude Code and Codex skills. Use only when the request is
+  explicitly about the skill itself: creating a new skill, editing a SKILL.md
   file, testing a skill draft in .claude/skills/.../SKILL.md or
   .codex/skills/.../SKILL.md, improving an existing skill, debugging why a
   skill is not triggering, running evals or benchmarks for a skill, or turning
-  a described workflow into a reusable skill. Do not use for generic CI setup,
-  GitHub Actions workflows, or ordinary coding tasks that are not about a
-  skill.
+  an already-described workflow into a reusable skill. Trigger on phrases like
+  existing skill, skill draft, SKILL.md, skill trigger, skill eval, make this
+  into a skill, or turn this workflow into a skill. Do not use for ordinary
+  implementation work unless the user explicitly mentions a skill, SKILL.md,
+  or converting the task into a skill. That exclusion includes generic coding
+  tasks, generic automation/workflow setup, CI setup, GitHub Actions
+  workflows, debugging, code review, database migrations, schema changes, and
+  production incident response when the user is just asking for help with the
+  task itself.
 ---
 
 # Skill Forge
