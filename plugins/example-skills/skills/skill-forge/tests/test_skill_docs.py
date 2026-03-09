@@ -2,11 +2,22 @@
 
 from pathlib import Path
 
+from scripts.utils import parse_skill_md
+
 
 SKILL_DIR = Path(__file__).parent.parent
 
 
 class TestSkillDocs:
+    def test_frontmatter_description_mentions_existing_skill_and_boundary(self):
+        _, description, _ = parse_skill_md(SKILL_DIR)
+
+        assert "improving an existing skill" in description
+        assert "generic automation/workflow setup" in description
+        assert "GitHub Actions" in description
+        assert "database migrations" in description
+        assert "turn this workflow into a skill" in description
+
     def test_description_optimization_requires_boundary_extraction(self):
         skill_md = (SKILL_DIR / "SKILL.md").read_text()
 
