@@ -22,12 +22,12 @@
       "category": "development",
       "strict": false,
       "skills": [
-        "./plugins/takt/skills/takt-analyzer",
-        "./plugins/takt/skills/takt-facet-builder",
-        "./plugins/takt/skills/takt-optimizer",
-        "./plugins/takt/skills/takt-piece-builder",
-        "./plugins/takt/skills/takt-skill-updater",
-        "./plugins/takt/skills/takt-task-builder"
+        "./skills/takt-analyzer",
+        "./skills/takt-facet-builder",
+        "./skills/takt-optimizer",
+        "./skills/takt-piece-builder",
+        "./skills/takt-skill-updater",
+        "./skills/takt-task-builder"
       ]
     }
   ]
