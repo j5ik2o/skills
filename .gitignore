@@ -82,3 +82,5 @@ scripts/run-*.sh
 !/.agents/skills/takt-*
 !/.agents/skills/skill-forge
 !/.claude/skills/skill-forge
+
+.gitmodules
