@@ -228,7 +228,18 @@ chore: update takt-* skills for takt v{バージョン}
 
 今後の更新時に参照できるよう、主要な変更をここに記録する。
 
-### v0.29.0 → v0.30.0（2026-03-06）
+### v0.29.0 → v0.31.0（2026-03-09）
+
+| スキル | 変更内容 |
+|--------|---------|
+| 全スキル | `前提 takt バージョン: v0.31.0` に更新 |
+| takt-task-builder | `pr_failed` ステータス（6番目の終端状態）の遷移テーブルに追加 |
+| takt-piece-builder | ビルトインテーブルを現行ピース一覧に刷新（`expert`/`default-mini`/`review-only` → `dual`/`backend`/`frontend`/`review`/`takt-default` 等）。`allowed_tools` → `provider_options.claude.allowed_tools` 移行例を追加。Loop monitor の `instruction_template` にビルトインファセット参照パターン追加。`takt-default-team-leader` 廃止（`takt-default` に統合） |
+| takt-facet-builder | ビルトイン一覧を大幅拡充（Instruction: `dual-team-leader-implement`, `loop-monitor-reviewers-fix`, `team-leader-implement` 等追加。Knowledge: `task-decomposition` 追加。Persona: `supervisor`, `dual-supervisor` 等追加。Output Contract: 各レビュー系追加）。レビュー出力契約に `family_tag`/`reopened` セクション構造追加 |
+| takt-analyzer | `provider_options` 構造チェック項目追加。`*-provider-events.jsonl`（別ファイル）と `trace.md` のログ記述追加。`observability` → `logging` リネーム反映 |
+| takt-optimizer | `instruction_template` テンプレート参照化・`allowed_tools` の `provider_options` 移行の最適化項目追加 |
+
+### v0.29.0 → v0.30.0（2026-03-06、未適用 → v0.31.0 に統合）
 
 | スキル | 変更内容 |
 |--------|---------|
