@@ -1,18 +1,16 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Existing tag to release (for example v0.1.0)"
-        required: true
-        type: string
+      dry_run:
+        description: 'Set true to preview the next version without creating commits, tags, or releases'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
-  group: release-${{ github.ref_name || inputs.tag }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -21,28 +19,59 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Resolve tag
-        id: tag
-        env:
-          INPUT_TAG: ${{ inputs.tag }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          if [ -n "${INPUT_TAG}" ]; then
-            echo "value=${INPUT_TAG}" >> "${GITHUB_OUTPUT}"
-          else
-            echo "value=${REF_NAME}" >> "${GITHUB_OUTPUT}"
-          fi
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ steps.tag.outputs.value }}
+          persist-credentials: true
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Configure Git User
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Generate Changelog and Bump Version
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v6
+        with:
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          git-message: 'chore: release {version}'
+          git-user-name: 'github-actions[bot]'
+          git-user-email: '41898282+github-actions[bot]@users.noreply.github.com'
+          preset: 'conventionalcommits'
+          tag-prefix: 'v'
+          output-file: 'CHANGELOG.md'
+          release-count: '0'
+          version-file: 'package.json'
+          version-path: 'version'
+          skip-on-empty: 'true'
+          skip-commit: ${{ inputs.dry_run || false }}
+          skip-tag: ${{ inputs.dry_run || false }}
+          skip-git-pull: 'true'
+          skip-ci: 'false'
+          git-push: 'false'
+
+      - name: Push Changes
+        if: ${{ steps.changelog.outputs.skipped == 'false' && !(inputs.dry_run || false) }}
+        env:
+          PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${PAT}@github.com/${{ github.repository }}.git
+          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin ${{ steps.changelog.outputs.tag }}
 
       - name: Create GitHub Release
+        if: ${{ steps.changelog.outputs.skipped == 'false' && !(inputs.dry_run || false) }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.value }}
-          name: ai-tools ${{ steps.tag.outputs.value }}
-          generate_release_notes: true
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          name: "ai-tools ${{ steps.changelog.outputs.tag }}"
+          body: ${{ steps.changelog.outputs.clean_changelog }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
