@@ -1,4 +1,4 @@
-# example-skills
+# agent-skills
 
 Claude Code および Codex CLI 向けのサンプルスキルコレクションです。スキルの作成、評価、反復的な改善など、さまざまな機能を示します。
 
@@ -31,7 +31,7 @@ claude plugin marketplace add j5ik2o/ai-tools
 #### ステップ 2: プラグインのインストール
 
 ```bash
-claude plugin install example-skills
+claude plugin install agent-skills
 ```
 
 #### インストールの確認
@@ -52,10 +52,10 @@ claude plugin list
 
 ```bash
 # コピーする場合
-cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
+cp -r /path/to/ai-tools/plugins/agent-skills/skills/skill-forge .codex/skills/skill-forge
 
 # シンボリックリンクの場合
-ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
+ln -s /path/to/ai-tools/plugins/agent-skills/skills/skill-forge .codex/skills/skill-forge
 ```
 
 Codex CLI は `.codex/skills/` および `.agents/skills/` ディレクトリからスキルを自動的に検出します。
@@ -65,7 +65,7 @@ Codex CLI は `.codex/skills/` および `.agents/skills/` ディレクトリか
 ### Claude Code
 
 ```bash
-claude plugin uninstall example-skills
+claude plugin uninstall agent-skills
 ```
 
 マーケットプレースの登録も解除する場合：

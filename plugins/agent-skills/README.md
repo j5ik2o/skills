@@ -1,4 +1,4 @@
-# example-skills
+# agent-skills
 
 A collection of example skills for Claude Code and Codex CLI, demonstrating various capabilities including skill creation, evaluation, and iterative improvement.
 
@@ -31,7 +31,7 @@ claude plugin marketplace add j5ik2o/ai-tools
 #### Step 2: Install the Plugin
 
 ```bash
-claude plugin install example-skills
+claude plugin install agent-skills
 ```
 
 #### Verify Installation
@@ -52,10 +52,10 @@ Copy or symlink the skill into your project's `.codex/skills/` directory (or `.a
 
 ```bash
 # Copy the skill
-cp -r /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
+cp -r /path/to/ai-tools/plugins/agent-skills/skills/skill-forge .codex/skills/skill-forge
 
 # Or create a symlink
-ln -s /path/to/ai-tools/plugins/example-skills/skills/skill-forge .codex/skills/skill-forge
+ln -s /path/to/ai-tools/plugins/agent-skills/skills/skill-forge .codex/skills/skill-forge
 ```
 
 Codex CLI automatically discovers skills from `.codex/skills/` and `.agents/skills/` directories.
@@ -65,7 +65,7 @@ Codex CLI automatically discovers skills from `.codex/skills/` and `.agents/skil
 ### Claude Code
 
 ```bash
-claude plugin uninstall example-skills
+claude plugin uninstall agent-skills
 ```
 
 To remove the marketplace registration as well:

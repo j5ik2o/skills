@@ -7,7 +7,7 @@ Claude Code と、Codex のようなスキルディレクトリベース CLI 向
 ## Highlights
 
 - `.claude-plugin/marketplace.json` から複数の plugin を公開
-- `example-skills` と `takt` などのスキルコレクションを収録
+- `agent-skills` と `takt` などのスキルコレクションを収録
 - `skills/` に直接参照用のシンボリックリンクを保持
 
 ## インストール
@@ -16,8 +16,10 @@ Claude Code と、Codex のようなスキルディレクトリベース CLI 向
 
 ```shell
 /plugin marketplace add j5ik2o/ai-tools
-/plugin install example-skills@j5ik2o-agent-skills
+/plugin install agent-skills@ai-tools
+/plugin install takt@ai-tools
 ```
+
 
 ### スキルディレクトリ対応 CLI
 
@@ -29,8 +31,8 @@ npx skills add j5ik2o/ai-tools
 
 | Plugin | 説明 | 主なスキル |
 |--------|------|------------|
-| [`example-skills`](plugins/example-skills) | Claude Code / Codex CLI 向けのサンプルスキル集 | [`skill-forge`](plugins/example-skills/skills/skill-forge) |
-| [`takt`](plugins/takt) | TAKT piece engine 向けのマルチエージェント支援スキル集 | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
+| [`agent-skills`](plugins/agent-skills) | スキル作成、評価、反復改善のワークフローを示すエージェントスキル集 | [`skill-forge`](plugins/agent-skills/skills/skill-forge) |
+| [`takt`](plugins/takt) | TAKT piece engine 向けの分析・構築・最適化スキル集 | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
 
 ## リポジトリ構成
 
@@ -39,7 +41,7 @@ npx skills add j5ik2o/ai-tools
 └── marketplace.json
 
 plugins/
-├── example-skills/
+├── agent-skills/
 │   ├── README.md
 │   └── skills/
 │       └── skill-forge/
@@ -53,7 +55,7 @@ plugins/
         └── takt-task-builder/
 
 skills/
-├── skill-forge -> ../plugins/example-skills/skills/skill-forge
+├── skill-forge -> ../plugins/agent-skills/skills/skill-forge
 ├── takt-analyzer -> ../plugins/takt/skills/takt-analyzer
 └── ...
 
@@ -63,11 +65,11 @@ template/
 
 ## 新しいスキルの作成方法
 
-1. `template/SKILL.md.template` を `plugins/example-skills/skills/<スキル名>/SKILL.md` にコピー
+1. `template/SKILL.md.template` を `plugins/agent-skills/skills/<スキル名>/SKILL.md` にコピー
 2. フロントマター（`name`, `description`）を編集し、指示を書く
 3. 直接参照する CLI でも使いたい場合は `skills/` にシンボリックリンクを作成:
    ```shell
-   ln -s ../plugins/example-skills/skills/<スキル名> skills/<スキル名>
+   ln -s ../plugins/agent-skills/skills/<スキル名> skills/<スキル名>
    ```
 4. 新しい plugin collection を公開する場合は `.claude-plugin/marketplace.json` を更新
 

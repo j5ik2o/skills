@@ -7,7 +7,7 @@ A marketplace repository for distributing AI agent skills for Claude Code and sk
 ## Highlights
 
 - Publishes multiple plugins through `.claude-plugin/marketplace.json`
-- Includes installable skill collections such as `example-skills` and `takt`
+- Includes installable skill collections such as `agent-skills` and `takt`
 - Keeps `skills/` symlinks for tools that consume plain skill directories directly
 
 ## Installation
@@ -16,7 +16,8 @@ A marketplace repository for distributing AI agent skills for Claude Code and sk
 
 ```shell
 /plugin marketplace add j5ik2o/ai-tools
-/plugin install example-skills@j5ik2o-agent-skills
+/plugin install agent-skills@ai-tools
+/plugin install takt@ai-tools
 ```
 
 ### Skill-directory-based CLI
@@ -29,8 +30,8 @@ npx skills add j5ik2o/ai-tools
 
 | Plugin | Description | Key skills |
 |--------|-------------|------------|
-| [`example-skills`](plugins/example-skills) | Example skills for Claude Code and Codex CLI | [`skill-forge`](plugins/example-skills/skills/skill-forge) |
-| [`takt`](plugins/takt) | TAKT piece-engine skills for multi-agent orchestration | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
+| [`agent-skills`](plugins/agent-skills) | Agent skills demonstrating skill creation, evaluation, and iterative improvement workflows | [`skill-forge`](plugins/agent-skills/skills/skill-forge) |
+| [`takt`](plugins/takt) | TAKT piece engine skills for multi-agent orchestration, analysis, building, and optimization | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
 
 ## Repository Structure
 
@@ -39,7 +40,7 @@ npx skills add j5ik2o/ai-tools
 └── marketplace.json
 
 plugins/
-├── example-skills/
+├── agent-skills/
 │   ├── README.md
 │   └── skills/
 │       └── skill-forge/
@@ -53,7 +54,7 @@ plugins/
         └── takt-task-builder/
 
 skills/
-├── skill-forge -> ../plugins/example-skills/skills/skill-forge
+├── skill-forge -> ../plugins/agent-skills/skills/skill-forge
 ├── takt-analyzer -> ../plugins/takt/skills/takt-analyzer
 └── ...
 
@@ -63,11 +64,11 @@ template/
 
 ## Creating a New Skill
 
-1. Copy `template/SKILL.md.template` to `plugins/example-skills/skills/<your-skill>/SKILL.md`
+1. Copy `template/SKILL.md.template` to `plugins/agent-skills/skills/<your-skill>/SKILL.md`
 2. Edit the frontmatter (`name`, `description`) and add instructions
 3. Create a symlink in `skills/` if you want direct CLI consumption:
    ```shell
-   ln -s ../plugins/example-skills/skills/<your-skill> skills/<your-skill>
+   ln -s ../plugins/agent-skills/skills/<your-skill> skills/<your-skill>
    ```
 4. Add or update entries in `.claude-plugin/marketplace.json` if you are publishing a new plugin collection
 

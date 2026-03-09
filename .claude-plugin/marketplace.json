@@ -7,10 +7,10 @@
   },
   "plugins": [
     {
-      "name": "example-skills",
+      "name": "agent-skills",
       "description": "Collection of example skills demonstrating various capabilities including skill creation, MCP building, visual design, algorithmic art, internal communications, web testing, artifact building, Slack GIFs, and theme styling",
       "version": "1.0.0",
-      "source": "./plugins/example-skills",
+      "source": "./plugins/agent-skills",
       "category": "development",
       "strict": false
     },
