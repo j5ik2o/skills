@@ -29,10 +29,10 @@ npx skills add j5ik2o/ai-tools
 
 ## プラグイン
 
-| Plugin | 説明 | 主なスキル |
-|--------|------|------------|
-| [`agent-skills`](plugins/agent-skills) | スキル作成、評価、反復改善のワークフローを示すエージェントスキル集 | [`skill-forge`](plugins/agent-skills/skills/skill-forge) |
-| [`takt`](plugins/takt) | TAKT piece engine 向けの分析・構築・最適化スキル集 | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
+| Plugin | 説明 | 主なスキル | 詳細 |
+|--------|------|------------|------|
+| [`agent-skills`](plugins/agent-skills) | スキル作成、評価、反復改善のワークフローを示すエージェントスキル集 | [`skill-forge`](plugins/agent-skills/skills/skill-forge) | [README](plugins/agent-skills/README.ja.md) |
+| [`takt`](plugins/takt) | TAKT piece engine 向けの分析・構築・最適化スキル集 | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` | - |
 
 ## リポジトリ構成
 

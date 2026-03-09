@@ -28,10 +28,10 @@ npx skills add j5ik2o/ai-tools
 
 ## Plugins
 
-| Plugin | Description | Key skills |
-|--------|-------------|------------|
-| [`agent-skills`](plugins/agent-skills) | Agent skills demonstrating skill creation, evaluation, and iterative improvement workflows | [`skill-forge`](plugins/agent-skills/skills/skill-forge) |
-| [`takt`](plugins/takt) | TAKT piece engine skills for multi-agent orchestration, analysis, building, and optimization | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` |
+| Plugin | Description | Key skills | Details |
+|--------|-------------|------------|---------|
+| [`agent-skills`](plugins/agent-skills) | Agent skills demonstrating skill creation, evaluation, and iterative improvement workflows | [`skill-forge`](plugins/agent-skills/skills/skill-forge) | [README](plugins/agent-skills/README.md) |
+| [`takt`](plugins/takt) | TAKT piece engine skills for multi-agent orchestration, analysis, building, and optimization | `takt-task-builder`, `takt-piece-builder`, `takt-facet-builder`, `takt-analyzer`, `takt-optimizer`, `takt-skill-updater` | - |
 
 ## Repository Structure
 
