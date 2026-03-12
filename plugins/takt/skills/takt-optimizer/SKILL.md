@@ -148,7 +148,7 @@ movements:
 | max_movements調整 | ムーブメント数に対してmax_movementsが過大/過小な場合に調整 |
 | supervise失敗遷移の修正 | `supervise` 失敗時に `plan` へ遷移するルールを `fix` に変更する。`supervise → plan` ループは高コストで非生産的になりやすい |
 | edit=false ビルド禁止の追記 | `edit: false` のムーブメントが参照するインストラクションに「ビルドコマンドを実行しないこと」の禁止セクション（`## やらないこと`）を追加する |
-| instruction_template のビルトイン参照化 | インラインの `instruction_template` 文字列をビルトインファセット参照（bare name: `loop-monitor-ai-fix`, `loop-monitor-reviewers-fix`）に置換する（v0.30.0〜） |
+| loop monitor judge の instruction 正規化 | `loop_monitors.judge.instruction` をビルトインファセット参照（`loop-monitor-ai-fix`, `loop-monitor-reviewers-fix`）へ統一し、旧 judge テンプレート記法を除去する |
 | allowed_tools の provider_options 移行 | トップレベルの `allowed_tools` を `provider_options.claude.allowed_tools` に移動する（v0.30.0〜） |
 
 **threshold推奨値:**

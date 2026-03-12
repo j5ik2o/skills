@@ -252,9 +252,7 @@ loop_monitors:
     threshold: 3
     judge:
       persona: supervisor
-      instruction_template: |
-        {cycle_count} loops have occurred. Determine whether progress is being made.
-        Report: {report:review-report.md}
+      instruction: loop-monitor-review-fix
       rules:
         - condition: Healthy (progress is being made)
           next: review

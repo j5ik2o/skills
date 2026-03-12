@@ -266,7 +266,7 @@ loop_monitors:
     threshold: 3
     judge:
       persona: supervisor
-      instruction_template: loop-monitor-ai-fix      # ビルトインファセット参照
+      instruction: loop-monitor-ai-fix               # ビルトインファセット参照
       rules:
         - condition: 健全（進捗あり）
           next: ai_review
@@ -276,7 +276,7 @@ loop_monitors:
     threshold: 3
     judge:
       persona: supervisor
-      instruction_template: loop-monitor-reviewers-fix  # ビルトインファセット参照
+      instruction: loop-monitor-reviewers-fix        # ビルトインファセット参照
       rules:
         - condition: 健全（指摘数が減少、修正が反映されている）
           next: reviewers
@@ -284,7 +284,6 @@ loop_monitors:
           next: supervise
 ```
 
-**注意**: `instruction_template` はビルトインファセット名（bare name）を指定可能（v0.30.0〜）。インライン文字列でのテンプレート記述も引き続き有効。
 
 ### Step 6: 検証
 
