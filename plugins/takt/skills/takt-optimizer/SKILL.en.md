@@ -28,7 +28,7 @@ Executes optimizations on existing TAKT workflows. Diagnostics and analysis are 
 | Engine Specification | `references/takt/builtins/skill/references/engine.md` | Understanding prompt construction and token consumption |
 | Style Guides | `references/takt/builtins/en/*_STYLE_GUIDE.md` | Facet size limits |
 | Built-in Workflows | `references/takt/builtins/en/workflows/` | Optimization pattern reference |
-| Built-in Facets | `references/takt/builtins/en/{personas,policies,instructions,knowledge,output-contracts}/` | Built-in replacement candidates |
+| Built-in Facets | `references/takt/builtins/en/facets/{personas,policies,instructions,knowledge,output-contracts}/` | Built-in replacement candidates |
 
 ## Difference from takt-analyze
 
