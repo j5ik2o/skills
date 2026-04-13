@@ -14,7 +14,7 @@ description: >
 
 Create and edit TAKT tasks.yaml entries and task directories (order.md).
 
-> **Required takt version**: v0.29.0
+> **Required takt version**: v0.35.4
 
 ## Reference Materials
 
@@ -22,11 +22,11 @@ Task-management materials are under `references/takt/`. Refer to the following a
 
 | Material | Path | Purpose |
 |----------|------|---------|
-| Task management docs | `references/takt/docs/task-management.md` | Overall task workflow |
+| Task management docs | `references/takt/docs/task-management.ja.md` | Overall task workflow |
 | TaskRecord schema | `references/takt/src/infra/task/schema.ts` | Field definitions and validation |
 | Task format spec | `references/takt/builtins/project/tasks/TASK-FORMAT` | Details of `task_dir` format |
 | Schema details | This skill's `references/task-schema.md` | Field list and status transitions |
-| Validation script | This skill's `scripts/validate-order-md.sh` | Structural validation for order.md |
+| Validation script | This skill's `validate-order-md.sh` | Structural validation for order.md |
 
 **Important**: TaskRecord status-transition rules are strictly validated. Read `references/task-schema.md` and understand the invariants.
 
@@ -37,7 +37,7 @@ Task-management materials are under `references/takt/`. Refer to the following a
 Confirm the following (ask the user if anything is unclear):
 
 1. **Task content**: What should this task execute?
-2. **Piece**: Piece name to use (`default`, `dual`, custom, etc.)
+2. **Workflow**: Workflow name to use (`default`, `dual`, custom, etc.)
 3. **Isolated execution**: Whether `worktree` is needed (`true` / path / omitted)
 4. **Branch**: Custom branch name (auto-generated if omitted)
 5. **Auto PR creation**: Whether `auto_pr` / `draft_pr` are needed
@@ -133,7 +133,7 @@ Cost to keep shared types/interfaces consistent across tasks. TAKT has no live s
 tasks:
   - name: impl-module-a
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260301-100000-aaaaaa
     worktree: true
     branch: feat/module-a
@@ -143,7 +143,7 @@ tasks:
     completed_at: null
   - name: impl-module-b
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260301-100000-bbbbbb
     worktree: true
     branch: feat/module-b
@@ -153,7 +153,7 @@ tasks:
     completed_at: null
   - name: impl-module-c
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260301-100000-cccccc
     worktree: true
     branch: feat/module-c
@@ -167,21 +167,7 @@ Run in parallel with `takt run --concurrency 3`.
 
 **Pattern B: Dependency merge (schema + implementation in one task)**
 
-```yaml
-tasks:
-  - name: add-user-profile
-    status: pending
-    piece: default
-    task_dir: .takt/tasks/20260301-100000-dddddd
-    worktree: true
-    branch: feat/user-profile
-    auto_pr: true
-    created_at: "2026-03-01T10:00:00.000Z"
-    started_at: null
-    completed_at: null
-```
-
-Describe both schema changes and implementation in `order.md`, then execute as one task.
+Merge dependent tasks into one. The tasks.yaml entry is the same as the minimal configuration in Step 4. Describe both schema changes and implementation in `order.md`, then execute as one task.
 
 **Pattern C: Phased execution (leading task -> merge -> following parallel tasks)**
 
@@ -191,7 +177,7 @@ Phase 1: Shared foundation
 tasks:
   - name: define-shared-types
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260301-100000-eeeeee
     worktree: true
     branch: feat/shared-types
@@ -207,7 +193,7 @@ Run with `takt run`, then after PR merge add phase-2 tasks:
 tasks:
   - name: impl-consumer-x
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260301-110000-ffffff
     worktree: true
     branch: feat/consumer-x
@@ -217,7 +203,7 @@ tasks:
     completed_at: null
   - name: impl-consumer-y
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260301-110000-gggggg
     worktree: true
     branch: feat/consumer-y
@@ -291,7 +277,7 @@ tasks: []
 tasks:
   - name: add-auth-feature
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260223-143000-ab12cd
     created_at: "2026-02-23T14:30:00.000Z"
     started_at: null
@@ -304,7 +290,7 @@ tasks:
 tasks:
   - name: add-auth-feature
     status: pending
-    piece: default
+    workflow: default
     task_dir: .takt/tasks/20260223-143000-ab12cd
     slug: 20260223-143000-ab12cd
     worktree: true
@@ -323,7 +309,7 @@ tasks:
 tasks:
   - name: fix-login-bug
     status: pending
-    piece: default
+    workflow: default
     content: >-
       Fix the authentication error on the login screen.
       Root cause: invalid session-token expiration check.
@@ -351,7 +337,7 @@ Verify consistency of the created tasks (see `references/task-schema.md` for det
 - [ ] With `status: pending`, `started_at: null` and `completed_at: null`
 - [ ] `created_at` is ISO8601 format
 - [ ] Exactly one of `content`, `content_file`, `task_dir` is specified
-- [ ] `piece` matches an existing piece (builtin or custom)
+- [ ] `workflow` matches an existing workflow (builtin or custom)
 - [ ] Overall `tasks.yaml` structure is not broken
 
 #### Parallel consistency checks (for multiple tasks)
@@ -363,10 +349,11 @@ Verify consistency of the created tasks (see `references/task-schema.md` for det
 
 #### `order.md` structural validation
 
-Run `validate-order-md.sh` for mechanical validation of `order.md` structure:
+Run the `scripts/validate-order-md.sh` bundled with this skill for mechanical validation of `order.md` structure.
+Execute using the path appropriate for the skill's deployment location (`.agents/skills/`, `.claude/skills/`, `.codex/skills/`, etc.):
 
 ```bash
-bash .agents/skills/takt-task/scripts/validate-order-md.sh
+bash <this skill's directory>/scripts/validate-order-md.sh
 ```
 
 Validation items:
@@ -376,17 +363,18 @@ Validation items:
 - Items in `## Acceptance Criteria` section (at least one)
 - Cross-check: `task_dir` in `tasks.yaml` -> existence of `order.md`
 
-#### Additional gate for piece changes (required)
+#### Additional gate for workflow changes (required)
 
-If this task edits `.takt/pieces/*.yaml`, run the following before completion judgment:
+If this task edits `.takt/workflows/*.yaml`, run the `takt-workflow-builder` skill's validation script before completion judgment.
+Execute using the path appropriate for the skill's deployment location:
 
 ```bash
-bash .agents/skills/takt-workflow-builder/scripts/validate-takt-files.sh --pieces
+bash <takt-workflow-builder skill directory>/scripts/validate-takt-files.sh --pieces
 ```
 
 Also confirm the following two points:
 - In healthy loop monitor state, `next` matches the head node of `cycle`
-- `{report:...}` references in loop monitor are limited to movement outputs generated inside the cycle
+- `{report:...}` references in loop monitor are limited to step outputs generated inside the cycle
 
 If either condition cannot be met, do not mark the task as `completed`.
 
@@ -397,7 +385,9 @@ If either condition cannot be met, do not mark the task as `completed`.
 | pending -> running | YES |
 | running -> completed | YES |
 | running -> failed | YES |
-| running -> exceeded | YES (when `max_movements` is exceeded) |
+| running -> exceeded | YES (when `max_steps` is exceeded) |
+| running -> pr_failed | YES (when PR creation fails) |
 | pending -> completed | NO (must pass through `running`) |
 | completed -> pending | NO (recreate as a new task) |
 | exceeded -> pending | NO (recreate as a new task) |
+| pr_failed -> pending | NO (recreate as a new task) |
