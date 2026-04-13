@@ -15,6 +15,8 @@ description: >
 
 Create and edit the 5 types of TAKT facet files individually.
 
+> **Required takt version**: v0.35.4
+
 ## Reference Materials
 
 When creating facets, refer to the materials in `references/takt/builtins/en/`.
@@ -27,8 +29,9 @@ When creating facets, refer to the materials in `references/takt/builtins/en/`.
 | Instruction Guide | `references/takt/builtins/en/INSTRUCTION_STYLE_GUIDE.md` | Instruction writing conventions |
 | Output Contract Guide | `references/takt/builtins/en/OUTPUT_CONTRACT_STYLE_GUIDE.md` | Output contract writing conventions |
 | Faceted Prompting | `references/takt/docs/faceted-prompting.en.md` | Theory of the 5-facet design |
-| Templates | `references/takt/builtins/en/templates/` | Templates for each facet |
-| Built-in Facets | `references/takt/builtins/en/{personas,policies,instructions,knowledge,output-contracts}/` | Existing facet examples |
+| Built-in Facets | `references/takt/builtins/en/facets/{personas,policies,instructions,knowledge,output-contracts}/` | Existing facet examples |
+
+**Note**: The templates directory has been removed. When creating new facets, refer to existing built-in facets instead.
 
 **Important**: Always read the relevant style guide before creating a facet.
 
@@ -42,7 +45,7 @@ Determine the facet type to create based on the user's requirements.
 This content is...
 ├── Identity/expertise specific to a particular agent → Persona
 ├── Behavioral norms shared across multiple agents → Policy
-├── Execution steps specific to a movement → Instruction
+├── Execution steps specific to a step → Instruction
 ├── Reference information that serves as a basis for decisions → Knowledge
 └── Structure definition for agent output → Output Contract
 ```
@@ -51,7 +54,7 @@ This content is...
 |-------|-----------|-------|--------------|
 | Persona | system prompt | 1 agent | "Is this knowledge specific to this agent?" |
 | Policy | within user message | Multiple agents | "Do multiple agents follow the same rule?" |
-| Instruction | Phase 1 message | 1 movement | "Is this procedure specific to this movement?" |
+| Instruction | Phase 1 message | 1 step | "Is this procedure specific to this step?" |
 | Knowledge | within user message | 1+ agents | "Is this reference information that serves as a basis for decisions?" |
 | Output Contract | Phase 2 message | 1 report | "Will downstream reference this via `{report:filename}`?" |
 
@@ -61,11 +64,11 @@ Check existing built-in facets of the same type and determine if they can be reu
 
 | Facet | Built-in Examples |
 |-------|-------------------|
-| Persona | coder, planner, architecture-reviewer, qa-reviewer, supervisor, security-reviewer |
-| Policy | coding, review, testing, qa, ai-antipattern |
-| Instruction | plan, implement, review-arch, review-qa, supervise, fix |
-| Knowledge | architecture, backend, cqrs-es, frontend, security |
-| Output Contract | plan, architecture-review, ai-review, summary, validation |
+| Persona | coder, planner, architect-planner, architecture-reviewer, qa-reviewer, supervisor, security-reviewer, frontend-reviewer, cqrs-es-reviewer, requirements-reviewer, testing-reviewer, terraform-reviewer, dual-supervisor, research-analyzer, research-digger, research-planner, research-supervisor, conductor, test-planner, ai-antipattern-reviewer |
+| Policy | coding, review, testing, qa, ai-antipattern, design-fidelity, design-planning, task-decomposition |
+| Instruction | plan, implement, implement-after-tests, write-tests-first, team-leader-implement, dual-team-leader-implement, review-arch, review-qa, review-security, review-frontend, review-cqrs-es, review-requirements, review-test, review-terraform, supervise, fix, ai-review, ai-fix, loop-monitor-ai-fix, loop-monitor-reviewers-fix, architecture-audit-plan, architecture-audit-review, architecture-audit-supervise, architecture-audit-team-leader, audit-security-plan, audit-security-review, audit-security-supervise, audit-security-team-leader, e2e-audit-plan, e2e-audit-review, e2e-audit-supervise, e2e-audit-team-leader, e2e-coverage-implement, e2e-coverage-plan, e2e-coverage-supervise, gather-review, unit-audit-plan, unit-audit-review, unit-audit-supervise, unit-audit-team-leader |
+| Knowledge | architecture, backend, cqrs-es, frontend, security, task-decomposition, takt, terraform-aws, e2e-testing, react, unit-testing |
+| Output Contract | plan, architecture-review, ai-review, qa-review, security-review, frontend-review, cqrs-es-review, requirements-review, testing-review, terraform-review, summary, validation, architecture-audit-plan, architecture-audit, audit-security, e2e-audit-plan, e2e-audit, e2e-coverage-plan, plan-frontend, test-report, unit-audit-plan, unit-audit, supervisor-validation |
 
 **Reuse Decision**: Do not create a custom facet if a built-in is sufficient.
 
@@ -73,7 +76,7 @@ Check existing built-in facets of the same type and determine if they can be reu
 
 #### Persona
 
-Templates: `templates/personas/{simple,expert,character}.md`
+Reference: existing facets in `references/takt/builtins/en/facets/personas/`
 
 | Template | Use Case | Examples |
 |----------|----------|----------|
@@ -108,13 +111,13 @@ Templates: `templates/personas/{simple,expert,character}.md`
 
 **Prohibited**:
 - Copying detailed policy rules (code examples, tables) (a one-line behavioral guideline is OK)
-- Piece-specific concepts (movement names, report file names)
+- Workflow-specific concepts (step names, report file names)
 - Tool-specific paths (`.takt/runs/`, etc.)
 - Execution steps
 
 #### Policy
 
-Template: `templates/policies/policy.md`
+Reference: existing facets in `references/takt/builtins/en/facets/policies/`
 
 ```markdown
 # {Policy Name}
@@ -136,12 +139,12 @@ Template: `templates/policies/policy.md`
 
 **Prohibited**:
 - Knowledge specific to a particular agent
-- Piece-specific concepts, tool-specific paths
+- Workflow-specific concepts, tool-specific paths
 - Execution steps
 
 #### Instruction
 
-Templates: `templates/instructions/{plan,implement,review,fix,supervise,...}.md`
+Reference: existing facets in `references/takt/builtins/en/facets/instructions/`
 
 ```markdown
 {Purpose statement. 1-2 lines, imperative mood}
@@ -166,15 +169,15 @@ Templates: `templates/instructions/{plan,implement,review,fix,supervise,...}.md`
 - Persona content (expertise, behavioral stance)
 - Policy content (shared coding principles)
 - Manual description of auto-injected variables (`{task}`, `{previous_response}`)
-- Direct references to other movement names
+- Direct references to other step names
 
 **Template Variables** (available for use):
-- `{iteration}`, `{max_movements}`, `{movement_iteration}`
+- `{iteration}`, `{max_steps}`, `{step_iteration}`
 - `{report_dir}`, `{report:filename}`, `{cycle_count}`
 
 #### Knowledge
 
-Template: `templates/knowledge/knowledge.md`
+Reference: existing facets in `references/takt/builtins/en/facets/knowledge/`
 
 ```markdown
 # {Domain Name} Knowledge
@@ -205,7 +208,7 @@ Verification approach:
 
 #### Output Contract
 
-Templates: `templates/reports/{plan,review,validation,summary,...}.md`
+Reference: existing facets in `references/takt/builtins/en/facets/output-contracts/`
 
 ````markdown
 ```markdown
@@ -229,6 +232,10 @@ Templates: `templates/reports/{plan,review,validation,summary,...}.md`
 **Size Guidelines**: 10-25 lines (max 30 lines, excluding cognitive load reduction rules)
 
 **Status Patterns**: `APPROVE / REJECT` (binary), `APPROVE / IMPROVE / REJECT` (ternary), `Complete` (fixed value)
+
+**Review Output Contract Structure** (v0.30.0+):
+- Add a `family_tag` column to each finding (category classification of findings)
+- Section structure: `new` (new) -> `persists` (persists) -> `resolved` (resolved) -> `reopened` (reopened)
 
 **Prohibited**:
 - Execution steps (responsibility of Instructions)
@@ -259,7 +266,7 @@ Verify the quality of the created facet.
 - [ ] Role definition is 1-2 sentences
 - [ ] "Do" and "Do not" sections include responsible agent names
 - [ ] No detailed policy rules have leaked in
-- [ ] No piece-specific concepts
+- [ ] No workflow-specific concepts
 
 **Policy:**
 - [ ] Purpose statement is one sentence
@@ -279,3 +286,17 @@ Verify the quality of the created facet.
 - [ ] Wrapped in a ```markdown code block
 - [ ] Review types have status and cognitive load reduction rules
 - [ ] No numeric prefix in file name
+
+## Validation
+
+Created/edited files can be mechanically verified with `validate-takt-files.sh`:
+
+```bash
+bash .agents/skills/takt-facet/scripts/validate-takt-files.sh
+```
+
+Verification items:
+- **Workflow YAML**: Required fields (`name`/`initial_step`/`steps`), `initial_step` step references, facet file reference existence
+- **Facet .md**: Empty check, persona/policy/knowledge require `# heading`, instruction/output-contract require content existence
+
+Options `--workflows` / `--facets` can be used to narrow the scope.

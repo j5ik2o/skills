@@ -1,45 +1,47 @@
 ---
 name: takt-optimizer
 description: >
-  A skill for optimizing existing TAKT workflows (piece YAMLs and facets).
-  Performs token consumption reduction, movement consolidation, rule simplification,
+  A skill for optimizing existing TAKT workflows (workflow YAMLs and facets).
+  Performs token consumption reduction, step consolidation, rule simplification,
   facet reuse promotion, loop control improvement, and parallelization proposals,
   then directly generates the optimized files.
-  When execution logs (.takt/logs/*.jsonl) are provided, it also performs
-  optimizations based on real data such as rule match distribution, loop frequency,
-  and ABORT rates.
-  While takt-analyze specializes in "analysis and reporting", this skill specializes
-  in "executing optimizations".
+  Can utilize takt-analyze diagnostic results (static analysis and log diagnostics) as input.
+  This skill handles only "executing optimizations"; diagnostics and analysis are delegated to takt-analyze.
   Uses references/takt engine specifications and style guides as the baseline.
-  Triggers: "optimize pieces", "speed up takt", "make the workflow lighter",
-  "reduce tokens", "reduce movements", "takt optimize",
-  "streamline the workflow", "clean up facets", "slim down the piece",
-  "reduce takt costs", "simplify the workflow",
-  "optimize from logs", "analyze execution logs and optimize", "improve takt from logs"
+  Triggers: "optimize workflows", "speed up takt", "make the workflow lighter",
+  "reduce tokens", "reduce steps", "takt optimize",
+  "streamline the workflow", "clean up facets", "slim down the workflow",
+  "reduce takt costs", "simplify the workflow"
 ---
 
 # TAKT Optimizer
 
-Analyzes existing TAKT workflows and executes optimizations.
+Executes optimizations on existing TAKT workflows. Diagnostics and analysis are handled by takt-analyze.
+
+> **Required takt version**: v0.35.4
 
 ## Reference Materials
 
 | Material | Path | Purpose |
 |----------|------|---------|
-| YAML Schema | `references/takt/builtins/skill/references/yaml-schema.md` | Piece structure validation baseline |
+| YAML Schema | `references/takt/builtins/skill/references/yaml-schema.md` | Workflow structure validation baseline |
 | Engine Specification | `references/takt/builtins/skill/references/engine.md` | Understanding prompt construction and token consumption |
 | Style Guides | `references/takt/builtins/en/*_STYLE_GUIDE.md` | Facet size limits |
-| Built-in Pieces | `references/takt/builtins/en/pieces/` | Optimization pattern reference |
+| Built-in Workflows | `references/takt/builtins/en/workflows/` | Optimization pattern reference |
 | Built-in Facets | `references/takt/builtins/en/{personas,policies,instructions,knowledge,output-contracts}/` | Built-in replacement candidates |
 
 ## Difference from takt-analyze
 
 | Aspect | takt-analyze | takt-optimize |
 |--------|-------------|---------------|
-| Purpose | Problem detection and reporting | Executing optimizations |
+| Purpose | Problem detection, diagnostics and reporting | Executing optimizations |
 | Output | Analysis report (Markdown) | Optimized file set |
 | Modifications | None (read-only) | Directly edits/generates files |
+| Input | Workflow YAML + facets + execution logs | Workflow YAML + facets + **takt-analyze diagnostic results** |
 | Judgment | Severity classification of issues | Cost/quality tradeoff decisions |
+| Log analysis | Performs analysis and generates diagnostic reports | Utilizes takt-analyze diagnostic results |
+
+> **Recommended flow**: `takt-analyze` (diagnostics) -> Use those results for `takt-optimize` (execute optimizations)
 
 ## Optimization Categories
 
@@ -57,9 +59,9 @@ Persona -> Policy -> Context -> Knowledge -> Instruction
 
 | Optimization | Method | Effect |
 |-------------|--------|--------|
-| Persona compression | Remove redundant descriptions, compress within size limits | Reduction at each movement |
-| Policy splitting | Split large policies by purpose, assign only to relevant movements | 2x effect (includes reminder portion) |
-| Knowledge scoping | Remove unnecessary knowledge references from movements | Reduce unnecessary context |
+| Persona compression | Remove redundant descriptions, compress within size limits | Reduction at each step |
+| Policy splitting | Split large policies by purpose, assign only to relevant steps | 2x effect (includes reminder portion) |
+| Knowledge scoping | Remove unnecessary knowledge references from steps | Reduce unnecessary context |
 | Instruction simplification | Remove manual descriptions of auto-injected content | Eliminate duplication |
 | Output contract slimming | Compress output contracts exceeding 30 lines | Reduction in report directive portion |
 
@@ -75,18 +77,18 @@ Persona -> Policy -> Context -> Knowledge -> Instruction
 | Instruction (implement) | 30-50 lines | - |
 | Output Contract | 10-25 lines | 30 lines |
 
-### 2. Movement Consolidation
+### 2. Step Consolidation
 
-Consolidate unnecessary movements to reduce the total number of steps in the workflow.
+Consolidate unnecessary steps to reduce the total number of steps in the workflow.
 
 | Pattern | Detection Condition | Optimization |
 |---------|-------------------|-------------|
-| Consecutive same persona | Adjacent movements share the same persona | Consolidate into 1 movement |
-| Single-rule transition | Only 1 rule with unconditional transition | Consider consolidating with adjacent movements |
-| edit=false chain | Chain of read-only movements | Evaluate consolidation potential |
+| Consecutive same persona | Adjacent steps share the same persona | Consolidate into 1 step |
+| Single-rule transition | Only 1 rule with unconditional transition | Consider consolidating with adjacent steps |
+| edit=false chain | Chain of read-only steps | Evaluate consolidation potential |
 
 **Consolidation criteria:**
-- Whether the persona is the same or different between movements
+- Whether the persona is the same or different between steps
 - Whether it breaks session: refresh boundaries
 - Whether independent report output is required
 - Whether rule branching is substantively meaningful
@@ -120,12 +122,12 @@ Replace custom facets with built-ins and reduce section maps.
 # Before: Custom facet referenced in section map
 personas:
   my-coder: ../personas/my-coder.md
-movements:
+steps:
   - name: implement
     persona: my-coder
 
 # After: Built-in bare name reference
-movements:
+steps:
   - name: implement
     persona: coder    # Direct built-in reference
 ```
@@ -144,19 +146,24 @@ Improve efficiency and safety of fix loops.
 | Add loop_monitors | Add loop_monitor when review-fix cycles lack one |
 | Threshold adjustment | Propose appropriate values when thresholds are too high/low |
 | Add ABORT conditions | Add ABORT transitions when missing for failure cases |
-| max_movements adjustment | Adjust when max_movements is excessive/insufficient for the number of movements |
+| max_steps adjustment | Adjust when max_steps is excessive/insufficient for the number of steps |
+| Fix supervise failure transition | Change `supervise` failure rule to transition to `fix` instead of `plan`. The `supervise -> plan` loop tends to be high-cost and unproductive |
+| Add edit=false build prohibition | Add a prohibition section ("## Do Not") to instructions referenced by `edit: false` steps stating "Do not execute build commands" |
+| Normalize loop monitor judge instruction | Unify `loop_monitors.judge.instruction` to built-in facet references (`loop-monitor-ai-fix`, `loop-monitor-reviewers-fix`) and remove legacy judge template notation |
+| Migrate allowed_tools to provider_options | Move top-level `allowed_tools` to `provider_options.claude.allowed_tools` (v0.30.0+) |
 
 **Recommended threshold values:**
 - review-fix cycle: 3 times
+- supervise-fix cycle: 3 times
 - implement-test cycle: 2 times
 
 ### 6. Parallelization Proposals
 
-Detect movements executed sequentially that could be parallelized.
+Detect steps executed sequentially that could be parallelized.
 
 **Parallelization conditions:**
 - Do not reference each other's output (pass_previous_response not needed)
-- Take the same preceding movement's report as input
+- Take the same preceding step's report as input
 - Produce independent reports
 
 ```yaml
@@ -189,98 +196,56 @@ Detect movements executed sequentially that could be parallelized.
       next: fix
 ```
 
-### 7. Log-Based Optimization
+### 7. Optimization Based on Log Diagnostic Results
 
-Analyze execution logs (`.takt/logs/{sessionId}.jsonl`) and perform optimizations based on real data.
+Use takt-analyze log diagnostic results as input to execute optimizations based on real data.
 
-**Log locations:**
-- Session logs: `.takt/logs/{sessionId}.jsonl` (NDJSON format)
-- Latest session: Accessible via `.takt/logs/latest.json`
+> **Prerequisite**: Log reading, parsing, and diagnostics are handled by takt-analyze. This category only covers "what to change" based on the diagnostic results.
 
-**NDJSON record types:**
+**Diagnostic results -> Optimization actions:**
 
-| Record | Key Fields | Use for Optimization |
-|--------|-----------|---------------------|
-| `piece_start` | `task`, `pieceName`, `startTime` | Identify execution patterns |
-| `step_start` | `step`, `persona`, `iteration` | Movement execution frequency |
-| `step_complete` | `step`, `status`, `matchedRuleIndex`, `matchedRuleMethod` | Rule match analysis |
-| `phase_start` | `step`, `phase`(1/2/3), `phaseName` | Phase-level analysis |
-| `phase_complete` | `step`, `phase`, `status`, `content`, `error` | Phase-level bottlenecks |
-| `piece_complete` | `iterations`, `endTime` | Total iteration count |
-| `piece_abort` | `iterations`, `reason`, `endTime` | Failure pattern analysis |
-
-**Analysis items and optimizations:**
-
-| Analysis | Method | Optimization Action |
-|----------|--------|-------------------|
-| Loop hotspots | Count occurrences of `step_start` for the same step | Adjust loop_monitor threshold, review rule conditions |
-| Dead rule detection | Aggregate `matchedRuleIndex` distribution, identify never-matched rules | Remove unreachable rules |
-| ai_fallback frequency | Ratio of `matchedRuleMethod` being `ai_judge_fallback` | Rewrite to tag-based rules (cost reduction and reliability improvement) |
-| ABORT rate | Ratio of `piece_abort` to `piece_complete` | Analyze ABORT `reason` and improve flow |
-| Phase-level errors | `error` field in `phase_complete` | Identify and improve error-prone phases |
-| Iteration efficiency | `piece_complete.iterations` vs `max_movements` | Calculate appropriate max_movements value |
-
-**matchedRuleMethod values and meanings:**
-
-| Value | Meaning | Optimization Perspective |
-|-------|---------|------------------------|
-| `phase3_tag` | Determined by Phase 3 tag judgment | Ideal (low cost) |
-| `phase1_tag` | Determined by Phase 1 output tag | Good (Phase 3 may be unnecessary) |
-| `aggregate` | Determined by parallel parent's all()/any() | Normal |
-| `ai_judge` | Determined by AI judgment of ai() condition | Acceptable (consider tag conversion) |
-| `ai_judge_fallback` | All conditions judged by AI (last resort) | Needs improvement (tags not being output) |
-| `auto_select` | Automatic selection | Normal |
-
-**Log analysis example:**
-
-```
-# Results from analyzing 3 execution logs:
-Step "ai_review" matchedRuleMethod distribution:
-  phase3_tag: 1 time (33%)
-  ai_judge_fallback: 2 times (67%)
--> Proposal: Status tags are not being output consistently.
-  Strengthen tag output directives in instructions, or simplify rule condition text.
-```
-
-**Multi-log integrated analysis:**
-
-When multiple session logs are provided, propose statistically reliable optimizations.
-- 3+ execution runs: Sufficient to confirm patterns
-- 1 execution run: Treat as reference data, prioritize static analysis
+| takt-analyze Diagnostic | Optimization Action |
+|------------------------|-------------------|
+| Loop hotspot (Warning/Critical) | Adjust `loop_monitor` `threshold`, review rule conditions |
+| Dead rule (Critical) | Remove unreachable rules |
+| Low rule evaluation efficiency (`ai_judge_fallback` high frequency) | Rewrite to tag-based rules, add tag output directives to output-contract |
+| High ABORT rate | Improve flow based on ABORT `reason` (`max_steps` adjustment, add ABORT conditions) |
+| Repeated phase-level errors | Improve instructions and personas for error-prone phases |
+| Low iteration efficiency | Calculate appropriate `max_steps` value, consider step consolidation |
 
 ## Workflow
 
 ### Step 1: Identify and Load Targets
 
-Identify the target piece YAML and load all related facets.
+Identify the target workflow YAML and load all related facets.
 
 ```
 Search order:
 1. User-specified path
-2. Custom pieces in ~/.takt/pieces/
-3. Project pieces in .takt/pieces/
+2. Custom workflows in ~/.takt/workflows/
+3. Project workflows in .takt/workflows/
 ```
 
 Content to load:
-- Entire piece YAML
+- Entire workflow YAML
 - All facet files from the section map
 - Built-in facets (for comparison)
-- Execution logs (if provided by user): `.takt/logs/*.jsonl`
+- takt-analyze diagnostic report (if provided)
 
 ### Step 2: Create Optimization Plan
 
 Evaluate the optimization potential of each category and present a plan.
 
 ```markdown
-# Optimization Plan: {piece name}
+# Optimization Plan: {workflow name}
 
 ## Analysis Sources
-- Static analysis: Piece YAML + {N} facets
-- Log analysis: {N} sessions (if provided)
+- Static analysis: Workflow YAML + {N} facets
+- takt-analyze diagnostics: {summary of diagnostic report} (if provided)
 
 ## Estimated Impact
 - Token reduction: ~{N}%
-- Movement count: {before} -> {after}
+- Step count: {before} -> {after}
 - File count: {before} -> {after}
 
 ## Optimization Items
@@ -288,7 +253,7 @@ Evaluate the optimization potential of each category and present a plan.
 |---|----------|--------|---------|-------|------|
 | 1 | Token reduction | persona/coder | Compress 120 lines -> 80 lines | Static | Low |
 | 2 | Built-in replacement | persona/my-reviewer | -> architecture-reviewer | Static | Low |
-| 3 | Rule simplification | ai_review | ai_fallback 67% -> tag conversion | Log | Low |
+| 3 | Rule simplification | ai_review | ai_fallback 67% -> tag conversion | Diagnostic | Low |
 | 4 | Parallelization | arch-review + qa-review | Sequential -> parallel | Static | Medium |
 ```
 
@@ -306,18 +271,18 @@ Execute the approved items.
 **Execution order (by dependency):**
 1. Facet compression/consolidation (file content changes)
 2. Built-in replacement (section map changes)
-3. Movement consolidation (YAML structure changes)
+3. Step consolidation (YAML structure changes)
 4. Rule simplification (rule condition changes)
 5. Loop control improvement (add loop_monitors)
-6. Parallelization (major movement structure changes)
+6. Parallelization (major step structure changes)
 
 ### Step 4: Consistency Verification
 
 Verify the consistency of optimized files.
 
-- [ ] Section map keys match references within movements
+- [ ] Section map keys match references within steps
 - [ ] Section map paths point to existing files
-- [ ] `initial_movement` exists within the `movements` array
+- [ ] `initial_step` exists within the `steps` array
 - [ ] All rule `next` values point to valid transition targets
 - [ ] Parallel parent rules use `all()`/`any()`
 - [ ] Parallel sub-step rules do not have `next`
@@ -327,17 +292,17 @@ Verify the consistency of optimized files.
 ### Step 5: Results Report
 
 ```markdown
-# Optimization Results: {piece name}
+# Optimization Results: {workflow name}
 
 ## Summary
 - Token reduction: ~{N}% (estimated)
-- Movement count: {before} -> {after}
+- Step count: {before} -> {after}
 - File count: {before} -> {after}
 
 ## Change List
 | # | File | Changes |
 |---|------|---------|
-| 1 | pieces/my-piece.yaml | Movement consolidation, rule simplification |
+| 1 | pieces/my-piece.yaml | Step consolidation, rule simplification |
 | 2 | personas/coder.md | Compressed 120 lines -> 80 lines |
 | 3 | (deleted) personas/my-reviewer.md | Replaced with built-in |
 
@@ -347,3 +312,17 @@ Verify the consistency of optimized files.
 ## Notes
 {Describe any potential behavioral changes due to optimization}
 ```
+
+## Validation
+
+Created/edited files can be mechanically verified with `validate-takt-files.sh`:
+
+```bash
+bash .agents/skills/takt-optimize/scripts/validate-takt-files.sh
+```
+
+Verification items:
+- **Workflow YAML**: Required fields (`name`/`initial_step`/`steps`), `initial_step` step reference, facet file reference existence
+- **Facet .md**: Empty check, persona/policy/knowledge require `# heading`, instruction/output-contract require content
+
+Options `--pieces` / `--facets` can narrow the targets.
