@@ -14,7 +14,7 @@ description: >
 
 TAKTの5種類のファセットファイルを個別に作成・編集する。
 
-> **前提 takt バージョン**: v0.31.0
+> **前提 takt バージョン**: v0.35.4
 
 ## 参照資料
 
@@ -28,8 +28,9 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 | インストラクションガイド | `references/takt/builtins/ja/INSTRUCTION_STYLE_GUIDE.md` | インストラクション記述規約 |
 | 出力契約ガイド | `references/takt/builtins/ja/OUTPUT_CONTRACT_STYLE_GUIDE.md` | 出力契約記述規約 |
 | Faceted Prompting | `references/takt/docs/faceted-prompting.ja.md` | 5ファセット設計の理論 |
-| テンプレート | `references/takt/builtins/ja/templates/` | 各ファセットのテンプレート |
 | ビルトインファセット | `references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,output-contracts}/` | 既存ファセット例 |
+
+**注意**: テンプレートディレクトリは廃止。新規作成時は既存のビルトインファセットを参照する。
 
 **重要**: ファセット作成前に該当するスタイルガイドを必ず読む。
 
@@ -43,7 +44,7 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 この内容は…
 ├── 特定エージェントのidentity・専門知識 → Persona
 ├── 複数エージェントが共有する行動規範 → Policy
-├── ムーブメント固有の実行手順 → Instruction
+├── ステップ固有の実行手順 → Instruction
 ├── 判断の前提となる参照情報 → Knowledge
 └── エージェント出力の構造定義 → Output Contract
 ```
@@ -52,7 +53,7 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 |-----------|--------|------|----------|
 | Persona | system prompt | 1エージェント | 「この知識はこのエージェント固有か？」 |
 | Policy | user message内 | 複数エージェント | 「複数エージェントが同じルールに従うか？」 |
-| Instruction | Phase 1 message | 1ムーブメント | 「この手順はこのムーブメント固有か？」 |
+| Instruction | Phase 1 message | 1ステップ | 「この手順はこのステップ固有か？」 |
 | Knowledge | user message内 | 1+エージェント | 「判断の前提となる参照情報か？」 |
 | Output Contract | Phase 2 message | 1レポート | 「後続が`{report:filename}`で参照するか？」 |
 
@@ -62,11 +63,11 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 
 | ファセット | ビルトイン例 |
 |-----------|-------------|
-| Persona | coder, planner, architecture-reviewer, qa-reviewer, supervisor, security-reviewer, frontend-reviewer, cqrs-es-reviewer, requirements-reviewer, testing-reviewer, terraform-reviewer, dual-supervisor |
-| Policy | coding, review, testing, qa, ai-antipattern |
-| Instruction | plan, implement, implement-after-tests, write-tests-first, team-leader-implement, dual-team-leader-implement, review-arch, review-qa, review-security, review-frontend, review-cqrs-es, review-requirements, review-test, review-terraform, supervise, fix, ai-review, ai-fix, loop-monitor-ai-fix, loop-monitor-reviewers-fix |
-| Knowledge | architecture, backend, cqrs-es, frontend, security, task-decomposition, takt, terraform-aws |
-| Output Contract | plan, architecture-review, ai-review, qa-review, security-review, frontend-review, cqrs-es-review, requirements-review, testing-review, terraform-review, summary, validation |
+| Persona | coder, planner, architect-planner, architecture-reviewer, qa-reviewer, supervisor, security-reviewer, frontend-reviewer, cqrs-es-reviewer, requirements-reviewer, testing-reviewer, terraform-reviewer, dual-supervisor, research-analyzer, research-digger, research-planner, research-supervisor, conductor, test-planner, ai-antipattern-reviewer |
+| Policy | coding, review, testing, qa, ai-antipattern, design-fidelity, design-planning, task-decomposition |
+| Instruction | plan, implement, implement-after-tests, write-tests-first, team-leader-implement, dual-team-leader-implement, review-arch, review-qa, review-security, review-frontend, review-cqrs-es, review-requirements, review-test, review-terraform, supervise, fix, ai-review, ai-fix, loop-monitor-ai-fix, loop-monitor-reviewers-fix, architecture-audit-plan, architecture-audit-review, architecture-audit-supervise, architecture-audit-team-leader, audit-security-plan, audit-security-review, audit-security-supervise, audit-security-team-leader, e2e-audit-plan, e2e-audit-review, e2e-audit-supervise, e2e-audit-team-leader, e2e-coverage-implement, e2e-coverage-plan, e2e-coverage-supervise, gather-review, unit-audit-plan, unit-audit-review, unit-audit-supervise, unit-audit-team-leader |
+| Knowledge | architecture, backend, cqrs-es, frontend, security, task-decomposition, takt, terraform-aws, e2e-testing, react, unit-testing |
+| Output Contract | plan, architecture-review, ai-review, qa-review, security-review, frontend-review, cqrs-es-review, requirements-review, testing-review, terraform-review, summary, validation, architecture-audit-plan, architecture-audit, audit-security, e2e-audit-plan, e2e-audit, e2e-coverage-plan, plan-frontend, test-report, unit-audit-plan, unit-audit, supervisor-validation |
 
 **再利用判断**: ビルトインで足りる場合はカスタムファセットを作らない。
 
@@ -74,7 +75,7 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 
 #### Persona
 
-テンプレート: `templates/personas/{simple,expert,character}.md`
+参照: `references/takt/builtins/ja/facets/personas/` の既存ファセット
 
 | テンプレート | 用途 | 例 |
 |------------|------|-----|
@@ -109,13 +110,13 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 
 **禁止事項**:
 - ポリシーの詳細ルール（コード例・テーブル）を転記（1行の行動指針はOK）
-- ピース固有の概念（ムーブメント名、レポートファイル名）
+- ワークフロー固有の概念（ステップ名、レポートファイル名）
 - ツール固有のパス（`.takt/runs/`等）
 - 実行手順
 
 #### Policy
 
-テンプレート: `templates/policies/policy.md`
+参照: `references/takt/builtins/ja/facets/policies/` の既存ファセット
 
 ```markdown
 # {ポリシー名}
@@ -137,12 +138,12 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 
 **禁止事項**:
 - 特定エージェント固有の知識
-- ピース固有の概念、ツール固有のパス
+- ワークフロー固有の概念、ツール固有のパス
 - 実行手順
 
 #### Instruction
 
-テンプレート: `templates/instructions/{plan,implement,review,fix,supervise,...}.md`
+参照: `references/takt/builtins/ja/facets/instructions/` の既存ファセット
 
 ```markdown
 {目的宣言。1-2行、命令形}
@@ -167,15 +168,15 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 - ペルソナの内容（専門知識、行動姿勢）
 - ポリシーの内容（共有コーディング原則）
 - 自動注入される変数（`{task}`, `{previous_response}`）の手動記述
-- 他ムーブメント名の直接参照
+- 他ステップ名の直接参照
 
 **テンプレート変数**（使用可能）:
-- `{iteration}`, `{max_movements}`, `{movement_iteration}`
+- `{iteration}`, `{max_steps}`, `{step_iteration}`
 - `{report_dir}`, `{report:filename}`, `{cycle_count}`
 
 #### Knowledge
 
-テンプレート: `templates/knowledge/knowledge.md`
+参照: `references/takt/builtins/ja/facets/knowledge/` の既存ファセット
 
 ```markdown
 # {ドメイン名}知識
@@ -206,7 +207,7 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 
 #### Output Contract
 
-テンプレート: `templates/reports/{plan,review,validation,summary,...}.md`
+参照: `references/takt/builtins/ja/facets/output-contracts/` の既存ファセット
 
 ````markdown
 ```markdown
@@ -264,7 +265,7 @@ TAKTの5種類のファセットファイルを個別に作成・編集する。
 - [ ] ロール定義が1-2文か
 - [ ] 「やること」「やらないこと」に担当エージェント名があるか
 - [ ] ポリシーの詳細ルールが混入していないか
-- [ ] ピース固有の概念がないか
+- [ ] ワークフロー固有の概念がないか
 
 **Policy:**
 - [ ] 目的説明が1文か
@@ -294,7 +295,7 @@ bash .agents/skills/takt-facet/scripts/validate-takt-files.sh
 ```
 
 検証項目:
-- **ピース YAML**: 必須フィールド（`name`/`initial_movement`/`movements`）、`initial_movement` の movement 参照、ファセットファイル参照の実在
+- **ワークフロー YAML**: 必須フィールド（`name`/`initial_step`/`steps`）、`initial_step` の step 参照、ファセットファイル参照の実在
 - **ファセット .md**: 空チェック、persona/policy/knowledge は `# 見出し` 必須、instruction/output-contract は内容存在
 
-オプション `--pieces` / `--facets` で対象を絞り込み可能。
+オプション `--workflows` / `--facets` で対象を絞り込み可能。

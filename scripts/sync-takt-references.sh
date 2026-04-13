@@ -90,9 +90,9 @@ clean_orphans "$TAKT_SRC/src/infra/task" "$DST/src/infra/task"
 echo ""
 
 # ------------------------------------------------------------------
-# takt-piece-builder
+# takt-workflow-builder
 # ------------------------------------------------------------------
-SKILL="takt-piece-builder"
+SKILL="takt-workflow-builder"
 echo "[$SKILL]"
 DST="$SKILLS_DIR/$SKILL/references/takt"
 

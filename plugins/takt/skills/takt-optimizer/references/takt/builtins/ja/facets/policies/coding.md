@@ -77,6 +77,93 @@ function createEngine(config, cwd: string) {
 3. **上位から値を渡す経路があるか？** → なければ引数・フィールドを追加
 4. **関連する値に不変条件があるか？** → ロード・セットアップ時にクロスバリデーションする
 
+## 解決責務の一元化
+
+設定、Option、provider、パス、権限のような「早い段階で決められる値」は、境界で一度だけ解決する。同じ値を複数の層で再解決しない。
+
+| パターン | 判定 | 理由 |
+|---------|------|------|
+| 入口で解決した値を下位層へ明示的に渡す | OK | 値の出所が追える |
+| 解決専用のメソッド/オブジェクトに委譲する | OK | SSOTが保たれる |
+| 上位と下位で同じ設定を別々に解決する | REJECT | 優先順位のズレを生む |
+| ログ表示用と実行用で別々に解決する | REJECT | 表示と挙動が乖離する |
+| メイン処理内で `if` を重ねて設定解決する | REJECT | オーケストレーションに詳細が漏れる |
+
+```typescript
+// REJECT - 各層がそれぞれ設定を解決
+function executeTask(options) {
+  const provider = options.provider ?? loadGlobalConfig().provider;
+  return runAgent({
+    provider,
+    stepProvider: resolveProviderForStep(options.step),
+  });
+}
+
+function runAgent(options) {
+  const provider = options.provider ?? resolveProviderFromConfig();
+  return getProvider(provider).call();
+}
+
+// OK - 境界で解決し、以降は解決済みの値だけを使う
+function executeTask(options) {
+  const resolved = resolveExecutionContext(options);
+  return runAgent({
+    resolvedProvider: resolved.provider,
+    resolvedModel: resolved.model,
+  });
+}
+
+function runAgent(options) {
+  return getProvider(options.resolvedProvider).call();
+}
+```
+
+判断基準:
+1. この値は実行前に確定できるか？ → できるなら境界で解決する
+2. 同じ優先順位ロジックが2箇所以上にあるか？ → 専用メソッド/オブジェクトに集約する
+3. 下位層が設定ソースそのものを知っているか？ → 解決済みの値だけを渡す
+4. 表示・実行・保存で別々に解決しているか？ → 同じ解決結果を共有する
+
+## フェーズ分離
+
+入力の収集、解釈・正規化、実行、出力・副作用は段階で分ける。ループやメイン処理の途中で未解決の入力を受け取り直して、その場で解釈しない。
+
+| パターン | 判定 | 理由 |
+|---------|------|------|
+| `RawOptions -> ResolvedOptions -> ExecutionContext` の順で段階を分ける | OK | 各段階の責務が明確 |
+| ループ前に入力をまとめて正規化する | OK | 各反復が同じ前提で動く |
+| ループ内で毎回 `options ?? config ?? env` を解決する | REJECT | 各反復の前提が揺れる |
+| 反復ごとに入力解釈と実行ロジックが混在する | REJECT | 処理の意図が読めない |
+| 1件ずつ「入力→解釈→実行→出力」を繰り返すしかない場合でも、解釈処理を専用メソッドに隔離する | OK | 最低限の責務分離を保てる |
+
+```typescript
+// REJECT - ループ内で毎回入力を解釈
+for (const step of steps) {
+  const provider = options.provider
+    ?? step.provider
+    ?? projectConfig.provider
+    ?? globalConfig.provider;
+  const result = await executeStep(step, { provider });
+  printResult(result);
+}
+
+// OK - 先に解決し、ループ内は実行だけ
+const context = resolveExecutionContext(rawOptions, steps);
+
+for (const step of context.steps) {
+  const result = await executeStep(step, {
+    resolvedProvider: step.resolvedProvider,
+  });
+  printResult(result);
+}
+```
+
+判断基準:
+1. ループ内の分岐は「業務判断」か「入力解釈」か？ → 入力解釈ならループ外へ出す
+2. 同じ入力解釈が各反復で繰り返されているか？ → 先にまとめて正規化する
+3. 実行関数が raw input を直接受け取っているか？ → `Resolved*` 型へ変換してから渡す
+4. 最適化で逐次処理が必要か？ → 解釈だけでも先に関数へ抽出する
+
 ## 抽象化
 
 ### 条件分岐を追加する前に考える
@@ -204,13 +291,35 @@ return storage.upload(file, options)
 - 50行超のUI/ロジック → 分離
 - 複数の責務がある → 分離
 
+### 機能追加時の到達経路
+
+新しい機能や画面を追加したら、実装と同じ変更セットで利用者が到達する経路も更新する。フレームワーク固有の配線方法は各ドメイン知識に従う。
+
+| 基準 | 判定 |
+|------|------|
+| 新機能の実装だけ追加し、呼び出し側・導線・到達経路の更新を忘れる | REJECT |
+| 利用者がどこから到達するか未定義のまま公開機能を追加する | REJECT |
+| 実装追加と同じ変更セットで導線と到達経路を更新する | OK |
+| 一時導線を追加した場合、その用途と除去条件を記録する | OK |
+
 ### 依存の方向
 
 - 上位層 → 下位層（逆方向禁止）
 - データ取得はルート（View/Controller）で行い、子に渡す
 - 子は親のことを知らない
 
-### 状態管理
+### 実行条件と依存条件の一致
+
+依存やトリガーは、実際にその処理を再実行したい条件と一致させる。静的ルールや実装都合のためだけに依存を増やし、意図しない再実行を起こさない。
+
+| 基準 | 判定 |
+|------|------|
+| lint や実装都合だけで依存やトリガーを増やし、再実行ループを生む | REJECT |
+| 無関係な state 変化や callback 再生成で初期処理が再実行される | REJECT |
+| 再実行条件が URL・フィルタ・明示的更新操作などの仕様に対応している | OK |
+| 初期化と再取得のトリガーを分けて設計している | OK |
+
+## 状態管理
 
 - 状態は使う場所に閉じ込める
 - 子は状態を直接変更しない（イベントを親に通知）
@@ -304,6 +413,73 @@ function formatCurrency(amount: number): string { ... }
 function formatDate(date: Date): string { ... }
 function formatPercentage(value: number): string { ... }
 ```
+
+## 同一実装の別名関数（DRY 違反）
+
+AIは同じ処理を異なる関数名で複数定義しがちである。
+
+| パターン | 例 | 判定 |
+|---------|-----|------|
+| 同一実装の別名関数 | `copyFacets()` と `placeFacetFiles()` が同じ処理 | REJECT |
+| 引数シグネチャが同一で本体も同一 | 2つの関数が同じパラメータを受け取り同じ処理を行う | REJECT |
+
+```typescript
+// REJECT - 同じ実装が別名で存在
+function copyFiles(src: string, dest: string): void {
+  for (const f of readdirSync(src)) {
+    copyFileSync(join(src, f), join(dest, f));
+  }
+}
+function placeFiles(src: string, dest: string): void {
+  for (const f of readdirSync(src)) {
+    copyFileSync(join(src, f), join(dest, f));
+  }
+}
+
+// OK - 1つの関数にまとめる
+function copyFiles(src: string, dest: string): void {
+  for (const f of readdirSync(src)) {
+    copyFileSync(join(src, f), join(dest, f));
+  }
+}
+```
+
+検証アプローチ:
+1. 新規追加された関数の本体が、既存関数と同一または酷似していないか確認
+2. 同じファイル内の関数同士、および同じモジュール内の関数同士を比較
+3. 重複があれば1つにまとめ、呼び出し元を統一
+
+## Stateful Regex の危険なパターン
+
+`/g` フラグ付き正規表現はステートフル（`lastIndex` を保持する）。モジュールスコープに定義して `test()` と `replace()` を混用すると予期しない結果になる。
+
+| パターン | 例 | 判定 |
+|---------|-----|------|
+| モジュールスコープの `/g` 正規表現を `test()` で使用 | `const RE = /x/g; if (RE.test(s)) ...` | REJECT |
+| `/g` 正規表現を `test()` と `replace()` で使い回し | `RE.test(s)` の後に `s.replace(RE, ...)` | REJECT |
+
+```typescript
+// REJECT - モジュールスコープの /g 正規表現を test() で使用
+const PATTERN = /\{\{facet:(\w+)\}\}/g;
+function hasFacetRef(text: string): boolean {
+  return PATTERN.test(text);  // lastIndex が進み、次回の呼び出しで結果が変わる
+}
+
+// OK - test() には /g を付けない、または関数内で new RegExp
+const PATTERN_CHECK = /\{\{facet:(\w+)\}\}/;  // /g なし
+const PATTERN_REPLACE = /\{\{facet:(\w+)\}\}/g;  // replace 用は /g
+function hasFacetRef(text: string): boolean {
+  return PATTERN_CHECK.test(text);
+}
+function replaceFacetRefs(text: string): string {
+  return text.replace(PATTERN_REPLACE, ...);
+}
+```
+
+検証アプローチ:
+1. モジュールスコープの正規表現に `/g` フラグがあるか確認
+2. `/g` 付き正規表現が `test()` で使われていないか確認
+3. 同一の正規表現が `test()` と `replace()` の両方で使われていないか確認
 
 ## 禁止事項
 
