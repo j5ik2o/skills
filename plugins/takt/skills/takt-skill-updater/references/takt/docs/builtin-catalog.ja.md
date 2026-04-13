@@ -2,58 +2,65 @@
 
 [English](./builtin-catalog.md)
 
-TAKT に同梱されているすべてのビルトイン piece と persona の総合カタログです。
+TAKT に同梱されているすべてのビルトイン workflow と persona の総合カタログです。
 
-## おすすめ Piece
+## おすすめワークフロー
 
-| Piece | 推奨用途 |
+| Workflow | 推奨用途 |
 |----------|-----------------|
-| `default` | 標準の開発 piece です。テスト先行＋AIアンチパターンレビュー＋並列レビュー（アーキテクチャ＋スーパーバイザー）の構成です。計画 → テスト作成 → 実装 → AIアンチパターンレビュー → 並列レビュー → 完了。 |
+| `default` | 標準の開発 workflow です。テスト先行＋AIアンチパターンレビュー＋並列レビュー（アーキテクチャ＋スーパーバイザー）の構成です。計画 → テスト作成 → 実装 → AIアンチパターンレビュー → 並列レビュー → 完了。 |
 | `frontend-mini` | フロントエンド向けの mini 構成です。 |
 | `backend-mini` | バックエンド向けの mini 構成です。 |
 | `dual-mini` | フロントエンド＋バックエンド向けの mini 構成です。 |
 
-## 全ビルトイン Piece 一覧
+## 全ビルトイン Workflow 一覧
 
 カテゴリ順に並べています。
 
-| カテゴリ | Piece | 説明 |
+| カテゴリ | Workflow | 説明 |
 |---------|----------|-------------|
-| 🚀 クイックスタート | `default` | 標準の開発 piece です。テスト先行＋AIアンチパターンレビュー＋並列レビュー（アーキテクチャ＋スーパーバイザー）の構成です。計画 → テスト作成 → 実装 → AIアンチパターンレビュー → 並列レビュー → 完了。 |
-| | `frontend-mini` | ミニフロントエンド piece: plan -> implement -> 並列レビュー (AI antipattern + supervisor)。フロントエンドナレッジ注入付き。 |
-| | `backend-mini` | ミニバックエンド piece: plan -> implement -> 並列レビュー (AI antipattern + supervisor)。バックエンドナレッジ注入付き。 |
+| 🚀 クイックスタート | `default` | 標準の開発 workflow です。テスト先行＋AIアンチパターンレビュー＋並列レビュー（アーキテクチャ＋スーパーバイザー）の構成です。計画 → テスト作成 → 実装 → AIアンチパターンレビュー → 並列レビュー → 完了。 |
+| | `frontend-mini` | ミニフロントエンド workflow: plan -> implement -> 並列レビュー (AI antipattern + supervisor)。フロントエンドナレッジ注入付き。 |
+| | `backend-mini` | ミニバックエンド workflow: plan -> implement -> 並列レビュー (AI antipattern + supervisor)。バックエンドナレッジ注入付き。 |
 | | `compound-eye` | マルチモデルレビュー: 同じ指示を Claude と Codex に同時送信し、両方のレスポンスを統合。 |
-| ⚡ Mini | `backend-cqrs-mini` | ミニ CQRS+ES piece: plan -> implement -> 並列レビュー (AI antipattern + supervisor)。CQRS+ES ナレッジ注入付き。 |
-| | `dual-mini` | ミニデュアル piece: plan -> implement -> 並列レビュー (AI antipattern + expert supervisor)。フロントエンド＋バックエンドナレッジ注入付き。 |
-| | `dual-cqrs-mini` | ミニ CQRS+ES デュアル piece: plan -> implement -> 並列レビュー (AI antipattern + expert supervisor)。CQRS+ES ナレッジ注入付き。 |
-| 🎨 フロントエンド | `frontend` | フロントエンド特化開発 piece。React/Next.js に焦点を当てたレビューとナレッジ注入付き。 |
-| ⚙️ バックエンド | `backend` | バックエンド特化開発 piece。バックエンド、セキュリティ、QA エキスパートレビュー付き。 |
-| | `backend-cqrs` | CQRS+ES 特化バックエンド開発 piece。CQRS+ES、セキュリティ、QA エキスパートレビュー付き。 |
-| 🔧 デュアル | `dual` | フロントエンド＋バックエンド開発 piece: architecture、frontend、security、QA レビューと修正ループ付き。 |
-| | `dual-cqrs` | フロントエンド＋バックエンド開発 piece (CQRS+ES 特化): CQRS+ES、frontend、security、QA レビューと修正ループ付き。 |
-| 🏗️ インフラストラクチャ | `terraform` | Terraform IaC 開発 piece: plan → implement → 並列レビュー → 監督検証 → 修正 → 完了。 |
-| 🔍 レビュー | `review` | 多角コードレビュー: PR/ブランチ/作業中の差分を自動判定し、5つの並列観点（arch/security/QA/testing/requirements）からレビューして統合結果を出力。 |
-| | `review-fix` | 多角レビュー＋修正ループ（architecture/security/QA/testing/requirements — 5並列レビュー＋反復修正）。 |
-| | `frontend-review` | フロントエンド特化レビュー（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
-| | `frontend-review-fix` | フロントエンド特化レビュー＋修正ループ（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
-| | `backend-review` | バックエンド特化レビュー（構造、モジュール化、ヘキサゴナルアーキテクチャ、セキュリティ、QA）。 |
-| | `backend-review-fix` | バックエンド特化レビュー＋修正ループ（構造、モジュール化、ヘキサゴナルアーキテクチャ、セキュリティ、QA）。 |
-| | `dual-review` | フロントエンド＋バックエンド特化レビュー（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
-| | `dual-review-fix` | フロントエンド＋バックエンド特化レビュー＋修正ループ（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
-| | `dual-cqrs-review` | フロントエンド＋CQRS+ES 特化レビュー（構造、モジュール化、ドメインモデル、コンポーネント設計、セキュリティ、QA）。 |
-| | `dual-cqrs-review-fix` | フロントエンド＋CQRS+ES 特化レビュー＋修正ループ（構造、モジュール化、ドメインモデル、コンポーネント設計、セキュリティ、QA）。 |
-| | `backend-cqrs-review` | CQRS+ES 特化レビュー（構造、モジュール化、ドメインモデル、セキュリティ、QA）。 |
-| | `backend-cqrs-review-fix` | CQRS+ES 特化レビュー＋修正ループ（構造、モジュール化、ドメインモデル、セキュリティ、QA）。 |
-| 🧪 テスト | `unit-test` | ユニットテスト特化 piece: テスト分析 -> テスト実装 -> レビュー -> 修正。 |
-| | `e2e-test` | E2E テスト特化 piece: E2E 分析 -> E2E 実装 -> レビュー -> 修正 (Vitest ベースの E2E フロー)。 |
-| 🎵 TAKT開発 | `takt-default` | TAKT 開発 piece: 計画 → テスト作成 → 実装 → AIアンチパターンレビュー → 5並列レビュー → 修正 → 監督 → 完了。 |
-| | `takt-default-team-leader` | TAKT 開発 piece（チームリーダー版）: 計画 → テスト作成 → チームリーダー実装 → AIアンチパターンレビュー → 5並列レビュー → 修正 → 監督 → 完了。 |
-| | `takt-default-review-fix` | TAKT 開発コードレビュー＋修正ループ（5並列レビュー: architecture/security/QA/testing/requirements — 反復修正付き）。 |
-| その他 | `research` | リサーチ piece: planner -> digger -> supervisor。質問せずに自律的にリサーチを実行。 |
-| | `deep-research` | ディープリサーチ piece: plan -> dig -> analyze -> supervise。発見駆動型の調査で、浮上した疑問を多角的に分析。 |
+| ⚡ Mini | `backend-cqrs-mini` | ミニ CQRS+ES workflow: plan -> implement -> 並列レビュー (AI antipattern + supervisor)。CQRS+ES ナレッジ注入付き。 |
+| | `dual-mini` | ミニデュアル workflow: plan -> implement -> 並列レビュー (AI antipattern + expert supervisor)。フロントエンド＋バックエンドナレッジ注入付き。 |
+| | `dual-cqrs-mini` | ミニ CQRS+ES デュアル workflow: plan -> implement -> 並列レビュー (AI antipattern + expert supervisor)。CQRS+ES ナレッジ注入付き。 |
+| 🎨 フロントエンド | `frontend` | フロントエンド特化開発 workflow。React/Next.js に焦点を当てたレビューとナレッジ注入付き。 |
+| ⚙️ バックエンド | `backend` | バックエンド特化開発 workflow。バックエンド、セキュリティ、QA エキスパートレビュー付き。 |
+| | `backend-cqrs` | CQRS+ES 特化バックエンド開発 workflow。CQRS+ES、セキュリティ、QA エキスパートレビュー付き。 |
+| 🔧 デュアル | `dual` | フロントエンド＋バックエンド開発 workflow: architecture、frontend、security、QA レビューと修正ループ付き。 |
+| | `dual-cqrs` | フロントエンド＋バックエンド開発 workflow (CQRS+ES 特化): CQRS+ES、frontend、security、QA レビューと修正ループ付き。 |
+| 🏗️ インフラストラクチャ | `terraform` | Terraform IaC 開発 workflow: plan → implement → 並列レビュー → 監督検証 → 修正 → 完了。 |
+| 🔍 レビュー | `review-default` | 多角コードレビュー: PR/ブランチ/作業中の差分を自動判定し、5つの並列観点（arch/security/QA/testing/requirements）からレビューして統合結果を出力。 |
+| | `review-fix-default` | 多角レビュー＋修正ループ（architecture/security/QA/testing/requirements — 5並列レビュー＋反復修正）。 |
+| | `review-frontend` | フロントエンド特化レビュー（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
+| | `review-fix-frontend` | フロントエンド特化レビュー＋修正ループ（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
+| | `review-backend` | バックエンド特化レビュー（構造、モジュール化、ヘキサゴナルアーキテクチャ、セキュリティ、QA）。 |
+| | `review-fix-backend` | バックエンド特化レビュー＋修正ループ（構造、モジュール化、ヘキサゴナルアーキテクチャ、セキュリティ、QA）。 |
+| | `review-dual` | フロントエンド＋バックエンド特化レビュー（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
+| | `review-fix-dual` | フロントエンド＋バックエンド特化レビュー＋修正ループ（構造、モジュール化、コンポーネント設計、セキュリティ、QA）。 |
+| | `review-dual-cqrs` | フロントエンド＋CQRS+ES 特化レビュー（構造、モジュール化、ドメインモデル、コンポーネント設計、セキュリティ、QA）。 |
+| | `review-fix-dual-cqrs` | フロントエンド＋CQRS+ES 特化レビュー＋修正ループ（構造、モジュール化、ドメインモデル、コンポーネント設計、セキュリティ、QA）。 |
+| | `review-backend-cqrs` | CQRS+ES 特化レビュー（構造、モジュール化、ドメインモデル、セキュリティ、QA）。 |
+| | `review-fix-backend-cqrs` | CQRS+ES 特化レビュー＋修正ループ（構造、モジュール化、ドメインモデル、セキュリティ、QA）。 |
+| | `audit-unit` | ユニットテスト監査。振る舞いとカバレッジギャップを列挙し、コードを変更せずに Issue 作成可能なレポートを出力。 |
+| | `audit-e2e` | E2E テスト監査。ユーザーフローとカバレッジギャップを列挙し、コードを変更せずに Issue 作成可能なレポートを出力。 |
+| | `audit-security` | セキュリティ監査。プロジェクトの全ファイルを読み取ってセキュリティレビュー。 |
+| | `audit-architecture` | アーキテクチャ監査。モジュールと境界を列挙し、コードを変更せずに Issue 作成可能なレポートを出力。 |
+| | `audit-architecture-frontend` | フロントエンド特化アーキテクチャ監査。UI モジュールと境界を列挙。 |
+| | `audit-architecture-backend` | バックエンド特化アーキテクチャ監査。サービスモジュールと境界を列挙。 |
+| | `audit-architecture-dual` | フルスタックアーキテクチャ監査。フロントエンド/バックエンドの境界とクロスレイヤー配線を列挙。 |
+| 🧪 テスト | `unit-test` | ユニットテスト特化 workflow: テスト分析 -> テスト実装 -> レビュー -> 修正。 |
+| | `e2e-test` | E2E テスト特化 workflow: E2E 分析 -> E2E 実装 -> レビュー -> 修正 (Vitest ベースの E2E フロー)。 |
+| 🎵 TAKT開発 | `takt-default` | TAKT 開発 workflow: 計画 → テスト作成 → 実装 → AIアンチパターンレビュー → 5並列レビュー → 修正 → 監督 → 完了。 |
+| | `takt-default-team-leader` | TAKT 開発 workflow（チームリーダー版）: 計画 → テスト作成 → チームリーダー実装 → AIアンチパターンレビュー → 5並列レビュー → 修正 → 監督 → 完了。 |
+| | `review-fix-takt-default` | TAKT 開発コードレビュー＋修正ループ（5並列レビュー: architecture/security/QA/testing/requirements — 反復修正付き）。 |
+| その他 | `research` | リサーチ workflow: planner -> digger -> supervisor。質問せずに自律的にリサーチを実行。 |
+| | `deep-research` | ディープリサーチ workflow: plan -> dig -> analyze -> supervise。発見駆動型の調査で、浮上した疑問を多角的に分析。 |
 | | `magi` | エヴァンゲリオンにインスパイアされた合議システム。3つの AI persona (MELCHIOR, BALTHASAR, CASPER) が分析・投票。 |
 
-`takt switch` で piece をインタラクティブに切り替えできます。
+`takt` を実行すると workflow をインタラクティブに選択できます。
 
 ## ビルトイン Persona 一覧
 
@@ -100,13 +107,13 @@ You are a code reviewer specialized in security.
 - Review authentication logic
 ```
 
-piece YAML の `personas` セクションマップからカスタム persona を参照します。
+workflow YAML の `personas` セクションマップからカスタム persona を参照します。
 
 ```yaml
 personas:
   my-reviewer: ~/.takt/personas/my-reviewer.md
 
-movements:
+steps:
   - name: review
     persona: my-reviewer
     # ...
@@ -114,7 +121,7 @@ movements:
 
 ## Persona 別 Provider オーバーライド
 
-`~/.takt/config.yaml` の `persona_providers` を使用して、piece を複製せずに特定の persona を異なる provider にルーティングできます。これにより、例えばコーディングは Codex で実行し、レビューアーは Claude に維持するといった構成が可能になります。
+`~/.takt/config.yaml` の `persona_providers` を使用して、workflow を複製せずに特定の persona を異なる provider にルーティングできます。これにより、例えばコーディングは Codex で実行し、レビューアーは Claude に維持するといった構成が可能になります。
 
 ```yaml
 # ~/.takt/config.yaml
@@ -123,4 +130,4 @@ persona_providers:
   ai-antipattern-reviewer: claude   # レビューアーは Claude を維持
 ```
 
-この設定はすべての piece にグローバルに適用されます。指定された persona を使用する movement は、実行中の piece に関係なく、対応する provider にルーティングされます。
+この設定はすべての workflow にグローバルに適用されます。指定された persona を使用する step は、実行中の workflow に関係なく、対応する provider にルーティングされます。

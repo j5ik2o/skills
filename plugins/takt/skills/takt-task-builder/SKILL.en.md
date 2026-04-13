@@ -381,7 +381,7 @@ Validation items:
 If this task edits `.takt/pieces/*.yaml`, run the following before completion judgment:
 
 ```bash
-bash .agents/skills/takt-piece/scripts/validate-takt-files.sh --pieces
+bash .agents/skills/takt-workflow-builder/scripts/validate-takt-files.sh --pieces
 ```
 
 Also confirm the following two points:

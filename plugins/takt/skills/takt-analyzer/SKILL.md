@@ -1,32 +1,32 @@
 ---
 name: takt-analyzer
 description: >
-  既存のTAKTピースとファセットを分析し、改善提案を行うスキル。ピースYAMLの構造検証、
+  既存のTAKTワークフローとファセットを分析し、改善提案を行うスキル。ワークフローYAMLの構造検証、
   ファセット間の整合性チェック、スタイルガイド準拠の確認、未使用ファセットの検出、
   ルール設計の最適化提案を実施する。実行ログ（.takt/logs/*.jsonl）が存在する場合は
   ログベース診断分析も行い、ルール評価効率・ループホットスポット・ABORT率等を報告する。
   references/taktのスタイルガイド・エンジン仕様を基準として分析する。
-  トリガー：「ピースを分析」「taktの設定を確認」「ファセットの品質チェック」
-  「ピースのレビュー」「takt analyze」「ワークフローの改善提案」
-  「ピースの整合性チェック」「taktの問題を見つけて」
+  トリガー：「ワークフローを分析」「taktの設定を確認」「ファセットの品質チェック」
+  「ワークフローのレビュー」「takt analyze」「ワークフローの改善提案」
+  「ワークフローの整合性チェック」「taktの問題を見つけて」
   「ログを分析」「実行ログの診断」「taktのログを見て」「ルール評価の統計」
   「ai_fallbackの頻度」「ループの検出」
 ---
 
 # TAKT Analyzer
 
-既存のTAKTピースとファセットを分析し、問題点の検出と改善提案を行う。
+既存のTAKTワークフローとファセットを分析し、問題点の検出と改善提案を行う。
 
-> **前提 takt バージョン**: v0.31.0
+> **前提 takt バージョン**: v0.35.4
 
 ## 参照資料
 
 | 資料 | パス | 用途 |
 |------|------|------|
-| YAMLスキーマ | `references/takt/builtins/skill/references/yaml-schema.md` | ピース構造の検証基準 |
+| YAMLスキーマ | `references/takt/builtins/skill/references/yaml-schema.md` | ワークフロー構造の検証基準 |
 | エンジン仕様 | `references/takt/builtins/skill/references/engine.md` | ルール評価・実行仕様 |
 | スタイルガイド群 | `references/takt/builtins/ja/*_STYLE_GUIDE.md` | ファセット品質基準 |
-| ビルトインピース | `references/takt/builtins/ja/pieces/` | 構造パターンの参照 |
+| ビルトインワークフロー | `references/takt/builtins/ja/workflows/` | 構造パターンの参照 |
 | ビルトインファセット | `references/takt/builtins/ja/facets/{personas,policies,instructions,knowledge,output-contracts}/` | ファセット品質の参照 |
 | ログ型定義 | `references/takt/src/core/logging/contracts.ts` | NDJSONレコード型の参照（v0.30.0で `observability` → `logging` にリネーム） |
 | プロバイダイベント | `references/takt/src/core/logging/providerEventLogger.ts` | `*-provider-events.jsonl` の構造 |
@@ -40,32 +40,32 @@ description: >
 | 目的 | 問題検出・診断とレポート | 最適化の実行 |
 | 出力 | 分析レポート（Markdown） | 最適化済みファイル群 |
 | 変更 | なし（読み取り専用） | ファイルを直接編集・生成 |
-| 入力 | ピースYAML + ファセット + **実行ログ** | 同左 |
+| 入力 | ワークフローYAML + ファセット + **実行ログ** | 同左 |
 | 判断 | 問題の重大度分類 | コスト/品質のトレードオフ判断 |
 
 ## 分析カテゴリ
 
-### 1. ピース構造分析
+### 1. ワークフロー構造分析
 
-ピースYAMLの構造的な問題を検出する。
+ワークフローYAMLの構造的な問題を検出する。
 
 **チェック項目:**
 
 | チェック | 内容 | 重大度 |
 |---------|------|--------|
-| initial_movement存在 | `initial_movement`が`movements`配列内に存在するか | Critical |
-| 遷移先の有効性 | 全`rules.next`が有効なムーブメント名 or `COMPLETE`/`ABORT`か | Critical |
+| initial_step存在 | `initial_step`が`steps`配列内に存在するか | Critical |
+| 遷移先の有効性 | 全`rules.next`が有効なステップ名 or `COMPLETE`/`ABORT`か | Critical |
 | loop健全遷移整合 | `loop_monitors.cycle` の健全時 `next` が cycle 先頭ノードと一致するか | Critical |
-| loop参照レポート範囲 | `loop_monitors.judge.instruction` の `{report:...}` が cycle 内 movement 生成物のみか | Critical |
-| セクションマップ整合性 | セクションマップのキーとムーブメント内参照が一致するか | Critical |
+| loop参照レポート範囲 | `loop_monitors.judge.instruction` の `{report:...}` が cycle 内 step 生成物のみか | Critical |
+| セクションマップ整合性 | セクションマップのキーとステップ内参照が一致するか | Critical |
 | ファイルパス存在 | セクションマップのパスが実在するか | Critical |
 | parallel構造 | 親ルールが`all()`/`any()`を使用、サブステップに`next`がないか | Warning |
-| edit=false + ビルド操作 | `edit: false` のムーブメントのインストラクションがビルドコマンド（`cargo check` 等）の禁止を明示しているか。読み取り専用サンドボックスでビルドは `Operation not permitted` で失敗する | Warning |
+| edit=false + ビルド操作 | `edit: false` のステップのインストラクションがビルドコマンド（`cargo check` 等）の禁止を明示しているか。読み取り専用サンドボックスでビルドは `Operation not permitted` で失敗する | Warning |
 | supervise失敗の遷移先 | `supervise` の失敗ルールが `plan` に遷移していないか。修正可能な問題は `fix` へ遷移すべきで、`supervise → plan` は根本設計変更が必要な場合のみ | Warning |
-| CI実行の責任配置 | `supervise`/`ai_review` 等の `edit: false` ムーブメントのインストラクションがCIの直接実行を禁止し、`fix`/`implement` のレポート証跡確認のみを求めているか | Warning |
+| CI実行の責任配置 | `supervise`/`ai_review` 等の `edit: false` ステップのインストラクションがCIの直接実行を禁止し、`fix`/`implement` のレポート証跡確認のみを求めているか | Warning |
 | provider_options構造 | `allowed_tools` がトップレベルではなく `provider_options.claude.allowed_tools` に配置されているか（v0.30.0〜） | Warning |
-| edit権限 | `edit: true`のムーブメントに適切な`required_permission_mode`があるか | Info |
-| session設定 | 実装系ムーブメントに`session: refresh`があるか | Info |
+| edit権限 | `edit: true`のステップに適切な`required_permission_mode`があるか | Info |
+| session設定 | 実装系ステップに`session: refresh`があるか | Info |
 
 ### 2. ファセット品質分析
 
@@ -75,7 +75,7 @@ description: >
 - [ ] ロール定義が1-2文
 - [ ] 「やること」「やらないこと」に担当エージェント名
 - [ ] ポリシーの詳細ルール（コード例・テーブル）が混入していない
-- [ ] ピース固有の概念（ムーブメント名等）がない
+- [ ] ワークフロー固有の概念（ステップ名等）がない
 - [ ] サイズ: simple 100行以内、expert 550行以内
 - [ ] `####`以下のネストがない
 
@@ -104,7 +104,7 @@ description: >
 | 違反パターン | 説明 | 修正方向 |
 |-------------|------|----------|
 | ペルソナにポリシー詳細 | コード例・テーブル付きのルールがペルソナ内に | → ポリシーに移動 |
-| ペルソナにピース概念 | ムーブメント名・レポートファイル名がペルソナ内に | → インストラクションに移動 |
+| ペルソナにワークフロー概念 | ステップ名・レポートファイル名がペルソナ内に | → インストラクションに移動 |
 | ポリシーに固有知識 | 特定エージェント固有の検出手法がポリシー内に | → ペルソナのドメイン知識に移動 |
 | インストラクションに原則 | 共有コーディング原則がインストラクション内に | → ポリシーに移動 |
 | 出力契約に手順 | 実行手順が出力契約内に | → インストラクションに移動 |
@@ -120,7 +120,7 @@ description: >
 | 到達不能ルール | どの条件にも該当しないケースがないか |
 | ループリスク | fix→review等の循環にloop_monitorsがあるか |
 | loop健全遷移 | 各 loop monitor で「健全（進捗あり）」の `next` が cycle 先頭ノードか |
-| loopレポート整合 | loop monitor が cycle 外 movement 専用レポートを参照していないか |
+| loopレポート整合 | loop monitor が cycle 外 step 専用レポートを参照していないか |
 | ABORT条件 | 失敗時のABORT遷移が適切に定義されているか |
 
 ### 5. ビルトイン活用分析
@@ -148,8 +148,8 @@ description: >
 | type | 内容 |
 |------|------|
 | `piece_start` | ピース実行の開始 |
-| `step_start` | ムーブメント（ステップ）の開始 |
-| `step_complete` | ムーブメント完了（`matchedRuleIndex`, `matchedRuleMethod` を含む） |
+| `step_start` | ステップの開始 |
+| `step_complete` | ステップ完了（`matchedRuleIndex`, `matchedRuleMethod` を含む） |
 | `phase_start` | フェーズの開始 |
 | `phase_complete` | フェーズ完了（`error` フィールドあり） |
 | `piece_complete` | ピース実行の正常完了（`iterations` を含む） |
@@ -195,7 +195,7 @@ description: >
 | ルール評価効率 | `matchedRuleMethod` の分布を集計。`ai_judge_fallback` の割合に注目 | >50%=Warning、>80%=Critical |
 | ABORT率 | `piece_abort` / `piece_complete` の比率 | >30%=Warning、>50%=Critical |
 | フェーズ別エラー | `phase_complete` の `error` フィールドを集計 | 同一フェーズで繰り返しエラー=Warning |
-| イテレーション効率 | `piece_complete.iterations` vs `max_movements` | 常に上限近く=Warning |
+| イテレーション効率 | `piece_complete.iterations` vs `max_steps` | 常に上限近く=Warning |
 
 #### d) 複数ログの統合分析ガイド
 
@@ -212,7 +212,7 @@ description: >
 - 期間: 2026-03-01 〜 2026-03-04
 
 ### ルール評価効率
-| ムーブメント | phase3_tag | ai_judge | ai_judge_fallback | 改善優先度 |
+| ステップ | phase3_tag | ai_judge | ai_judge_fallback | 改善優先度 |
 |------------|-----------|---------|-------------------|----------|
 | ai_review  | 20%       | 13%     | 67%               | 高       |
 | supervise  | 80%       | 20%     | 0%                | -        |
@@ -225,20 +225,20 @@ description: >
 
 ### ABORT分析
 - 成功: 4/5 (80%)
-- ABORT: 1/5 (20%) - reason: "max_movements exceeded"
+- ABORT: 1/5 (20%) - reason: "max_steps exceeded"
 ```
 
 ## ワークフロー
 
 ### Step 1: 対象の特定
 
-分析対象のピースYAMLを特定し、実行ログの有無を確認する。
+分析対象のワークフローYAMLを特定し、実行ログの有無を確認する。
 
 ```
 探索順序:
 1. ユーザー指定のパス
-2. ~/.takt/pieces/ 内のカスタムピース
-3. .takt/pieces/ 内のプロジェクトピース
+2. ~/.takt/workflows/ 内のカスタムワークフロー
+3. .takt/workflows/ 内のプロジェクトワークフロー
 
 ログ確認:
 - .takt/logs/ ディレクトリの存在確認
@@ -246,12 +246,12 @@ description: >
 - ログなし → 静的分析のみ（従来通り）
 ```
 
-### Step 2: ピースYAML解析
+### Step 2: ワークフローYAML解析
 
-ピースYAMLを読み込み、構造分析を実施する。
+ワークフローYAMLを読み込み、構造分析を実施する。
 
 1. YAML構文の検証
-2. ムーブメント構成の確認
+2. ステップ構成の確認
 3. ルール条件の型チェック
 4. セクションマップの参照解決
 
@@ -273,7 +273,7 @@ description: >
 ### Step 5: レポート出力
 
 ```markdown
-# TAKT分析レポート: {ピース名}
+# TAKT分析レポート: {ワークフロー名}
 
 ## サマリー
 - Critical: {N件}

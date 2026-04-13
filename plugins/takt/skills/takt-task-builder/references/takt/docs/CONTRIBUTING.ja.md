@@ -42,13 +42,13 @@ npm test
 
 ```bash
 # PR モード — PR番号を指定してレビュー
-takt -t "#<PR番号>" -w review
+takt -t "#<PR番号>" -w review-default
 
 # ブランチモード — ブランチのmainとの差分をレビュー
-takt -t "<ブランチ名>" -w review
+takt -t "<ブランチ名>" -w review-default
 
 # 現在の差分モード — 未コミットや直近の変更をレビュー
-takt -t "review current changes" -w review
+takt -t "review current changes" -w review-default
 ```
 
 ### 3. APPROVE を確認する

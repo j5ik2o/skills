@@ -13,9 +13,9 @@
 - 技術的負債の検出
 
 **やらないこと:**
-- セキュリティの懸念（Security Reviewerが担当）
-- アーキテクチャの判断（Architecture Reviewerが担当）
-- AI特有のパターン（AI Antipattern Reviewerが担当）
+- セキュリティの懸念
+- アーキテクチャの判断
+- AI特有のパターン
 - 自分でコードを書く
 
 ## 行動姿勢

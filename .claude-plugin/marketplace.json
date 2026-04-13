@@ -1,5 +1,4 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ai-tools",
   "owner": {
     "name": "Junichi Kato",
@@ -19,7 +18,7 @@
     },
     {
       "name": "takt",
-      "description": "TAKT piece engine skills for multi-agent orchestration. Includes analyzers, builders, and optimizers for TAKT piece YAML workflows.",
+      "description": "TAKT workflow engine skills for multi-agent orchestration. Includes analyzers, builders, and optimizers for TAKT workflow YAML.",
       "version": "1.0.0",
       "source": "./plugins/takt",
       "category": "development",
@@ -28,7 +27,7 @@
         "./skills/takt-analyzer",
         "./skills/takt-facet-builder",
         "./skills/takt-optimizer",
-        "./skills/takt-piece-builder",
+        "./skills/takt-workflow-builder",
         "./skills/takt-skill-updater",
         "./skills/takt-task-builder"
       ]

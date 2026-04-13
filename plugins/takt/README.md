@@ -1,15 +1,15 @@
 # takt
 
-TAKT skills for Claude Code and Codex CLI. This plugin bundles builders, analyzers, optimizers, and maintenance helpers for TAKT piece workflows.
+TAKT skills for Claude Code and Codex CLI. This plugin bundles builders, analyzers, optimizers, and maintenance helpers for TAKT workflows.
 
 ## Available Skills
 
 | Skill | Description |
 |-------|-------------|
 | `takt-task-builder` | Create and edit TAKT `tasks.yaml` entries and `.takt/tasks/{slug}/order.md` task directories |
-| `takt-piece-builder` | Create and customize TAKT piece YAML workflows and related facet files |
+| `takt-workflow-builder` | Create and customize TAKT workflow YAML and related facet files |
 | `takt-facet-builder` | Create and edit individual TAKT facets such as Persona, Policy, Instruction, Knowledge, and Output Contract |
-| `takt-analyzer` | Analyze existing TAKT pieces, facets, and execution logs to find issues and improvement opportunities |
+| `takt-analyzer` | Analyze existing TAKT workflows, facets, and execution logs to find issues and improvement opportunities |
 | `takt-optimizer` | Optimize existing TAKT workflows for lower token usage, simpler rules, and better execution flow |
 | `takt-skill-updater` | Update the `takt-*` skills after the `references/takt` submodule is refreshed |
 
@@ -57,7 +57,7 @@ Copy or symlink the TAKT skills you want into `.codex/skills/` or `.agents/skill
 
 ```bash
 # Example: install a single skill
-ln -s /path/to/ai-tools/plugins/takt/skills/takt-piece-builder .codex/skills/takt-piece-builder
+ln -s /path/to/ai-tools/plugins/takt/skills/takt-workflow-builder .codex/skills/takt-workflow-builder
 
 # Example: install all TAKT skills
 for skill in /path/to/ai-tools/plugins/takt/skills/*; do

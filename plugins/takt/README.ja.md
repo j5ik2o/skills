@@ -1,15 +1,15 @@
 # takt
 
-Claude Code および Codex CLI 向けの TAKT スキル集です。TAKT piece ワークフローの作成、分析、最適化、保守更新を支援します。
+Claude Code および Codex CLI 向けの TAKT スキル集です。TAKT ワークフローの作成、分析、最適化、保守更新を支援します。
 
 ## 利用可能なスキル
 
 | スキル | 説明 |
 |--------|------|
 | `takt-task-builder` | TAKT の `tasks.yaml` エントリと `.takt/tasks/{slug}/order.md` タスクディレクトリを作成・編集 |
-| `takt-piece-builder` | TAKT の piece YAML ワークフローと関連ファセットを作成・カスタマイズ |
+| `takt-workflow-builder` | TAKT のワークフロー YAML と関連ファセットを作成・カスタマイズ |
 | `takt-facet-builder` | Persona / Policy / Instruction / Knowledge / Output Contract などの TAKT ファセットを個別に作成・編集 |
-| `takt-analyzer` | 既存の TAKT piece、facet、実行ログを分析し、問題点と改善案を提示 |
+| `takt-analyzer` | 既存の TAKT ワークフロー、facet、実行ログを分析し、問題点と改善案を提示 |
 | `takt-optimizer` | 既存の TAKT ワークフローをトークン消費、ルール構成、実行フローの観点で最適化 |
 | `takt-skill-updater` | `references/takt` サブモジュール更新後に `takt-*` スキル群を追従更新 |
 
@@ -57,7 +57,7 @@ claude plugin list
 
 ```bash
 # 例: 1つのスキルだけ導入
-ln -s /path/to/ai-tools/plugins/takt/skills/takt-piece-builder .codex/skills/takt-piece-builder
+ln -s /path/to/ai-tools/plugins/takt/skills/takt-workflow-builder .codex/skills/takt-workflow-builder
 
 # 例: TAKT スキルを一括導入
 for skill in /path/to/ai-tools/plugins/takt/skills/*; do
