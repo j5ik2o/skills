@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/j5ik2o/ai-tools/compare/v0.3.0...v0.3.1) (2026-04-13)
+
+
+### Bug Fixes
+
+* remaining piece→workflow terminology in SKILL.md/SKILL.en.md ([9ee8edf](https://github.com/j5ik2o/ai-tools/commit/9ee8edf4c3189d0a7503a5f2aa227b46d9095e0c))
+
 ## [0.3.0](https://github.com/j5ik2o/ai-tools/compare/v0.2.0...v0.3.0) (2026-04-13)
 
 
