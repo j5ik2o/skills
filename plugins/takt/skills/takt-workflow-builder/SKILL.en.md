@@ -11,7 +11,7 @@ description: >
   "make a new takt workflow", "takt workflow", "workflow YAML"
 ---
 
-# TAKT Piece Builder
+# TAKT Workflow Builder
 
 Creates TAKT workflows (workflow YAML) and their associated facet files.
 
@@ -317,7 +317,7 @@ Verify the consistency of the created files:
 Created/edited files can be mechanically verified with `validate-takt-files.sh`:
 
 ```bash
-bash .agents/skills/takt-piece/scripts/validate-takt-files.sh
+bash .agents/skills/takt-workflow-builder/scripts/validate-takt-files.sh
 ```
 
 Verification items:

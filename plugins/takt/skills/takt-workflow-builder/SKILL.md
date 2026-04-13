@@ -10,7 +10,7 @@ description: >
   「新しいtaktワークフローを作って」「takt workflow」「ワークフローYAML」
 ---
 
-# TAKT Piece Builder
+# TAKT Workflow Builder
 
 TAKTワークフロー（ワークフローYAML）とその関連ファセットファイルを作成する。
 
@@ -317,7 +317,7 @@ loop_monitors:
 作成・編集したファイルは `validate-takt-files.sh` で機械的に検証できる:
 
 ```bash
-bash .agents/skills/takt-piece/scripts/validate-takt-files.sh
+bash .agents/skills/takt-workflow-builder/scripts/validate-takt-files.sh
 ```
 
 検証項目:

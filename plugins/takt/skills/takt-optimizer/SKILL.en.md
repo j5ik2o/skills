@@ -302,7 +302,7 @@ Verify the consistency of optimized files.
 ## Change List
 | # | File | Changes |
 |---|------|---------|
-| 1 | pieces/my-piece.yaml | Step consolidation, rule simplification |
+| 1 | workflows/my-workflow.yaml | Step consolidation, rule simplification |
 | 2 | personas/coder.md | Compressed 120 lines -> 80 lines |
 | 3 | (deleted) personas/my-reviewer.md | Replaced with built-in |
 
