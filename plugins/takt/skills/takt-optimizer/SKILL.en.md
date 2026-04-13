@@ -28,7 +28,7 @@ Executes optimizations on existing TAKT workflows. Diagnostics and analysis are 
 | Engine Specification | `references/takt/builtins/skill/references/engine.md` | Understanding prompt construction and token consumption |
 | Style Guides | `references/takt/builtins/en/*_STYLE_GUIDE.md` | Facet size limits |
 | Built-in Workflows | `references/takt/builtins/en/workflows/` | Optimization pattern reference |
-| Built-in Facets | `references/takt/builtins/en/{personas,policies,instructions,knowledge,output-contracts}/` | Built-in replacement candidates |
+| Built-in Facets | `references/takt/builtins/en/facets/{personas,policies,instructions,knowledge,output-contracts}/` | Built-in replacement candidates |
 
 ## Difference from takt-analyze
 
@@ -302,7 +302,7 @@ Verify the consistency of optimized files.
 ## Change List
 | # | File | Changes |
 |---|------|---------|
-| 1 | pieces/my-piece.yaml | Step consolidation, rule simplification |
+| 1 | workflows/my-workflow.yaml | Step consolidation, rule simplification |
 | 2 | personas/coder.md | Compressed 120 lines -> 80 lines |
 | 3 | (deleted) personas/my-reviewer.md | Replaced with built-in |
 
