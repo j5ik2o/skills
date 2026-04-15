@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/j5ik2o/ai-tools/compare/v0.3.1...v0.3.2) (2026-04-15)
+
+
+### Bug Fixes
+
+* **takt-workflow-builder:** update evals and validate script to workflow/step terminology ([a05100c](https://github.com/j5ik2o/ai-tools/commit/a05100c26af5b2f0311b930616d5fed771e649f9))
+
 ## [0.3.1](https://github.com/j5ik2o/ai-tools/compare/v0.3.0...v0.3.1) (2026-04-13)
 
 
