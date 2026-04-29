@@ -1,0 +1,8 @@
+{
+  "name": "software-design",
+  "description": "Software design skills for DDD, clean architecture, error handling, package design, refactoring, and maintainable domain modeling.",
+  "author": {
+    "name": "Junichi Kato",
+    "email": "j5ik2o@gmail.com"
+  }
+}

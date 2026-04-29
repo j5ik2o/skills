@@ -31,6 +31,46 @@
         "./skills/takt-skill-updater",
         "./skills/takt-task-builder"
       ]
+    },
+    {
+      "name": "software-design",
+      "description": "Software design skills for DDD, clean architecture, error handling, package design, refactoring, and maintainable domain modeling.",
+      "version": "1.0.0",
+      "source": "./plugins/software-design",
+      "category": "development",
+      "strict": true,
+      "skills": [
+        "./skills/breach-encapsulation-naming",
+        "./skills/clean-architecture",
+        "./skills/cqrs-aggregate-modeling",
+        "./skills/cqrs-to-event-sourcing",
+        "./skills/cqrs-tradeoffs",
+        "./skills/custom-linter-creator",
+        "./skills/ddd-aggregate-design",
+        "./skills/ddd-aggregate-transaction-boundary",
+        "./skills/ddd-cross-aggregate-constraints",
+        "./skills/ddd-domain-building-blocks",
+        "./skills/ddd-domain-model-extractor",
+        "./skills/ddd-domain-model-first",
+        "./skills/ddd-domain-primitives-and-always-valid",
+        "./skills/ddd-module-pattern",
+        "./skills/ddd-repository-design",
+        "./skills/ddd-repository-placement",
+        "./skills/ddd-when-to-wrap-primitives",
+        "./skills/deepresearch-readme",
+        "./skills/error-classification",
+        "./skills/error-handling",
+        "./skills/first-class-collection",
+        "./skills/intent-based-dedup",
+        "./skills/law-of-demeter",
+        "./skills/migrate-skill-to-agent",
+        "./skills/package-design",
+        "./skills/parse-dont-validate",
+        "./skills/pekko-cqrs-es-implementation",
+        "./skills/refactoring-packages",
+        "./skills/reviewing-skills",
+        "./skills/tell-dont-ask"
+      ]
     }
   ]
 }
