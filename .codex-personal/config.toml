@@ -1,4 +1,4 @@
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "medium"
 hide_agent_reasoning = true
 network_access = true
@@ -34,13 +34,8 @@ config_file = "agents/reviewer.toml"
 description = "Implementation-focused agent for small targeted fixes."
 config_file = "agents/worker.toml"
 
-[mcp_servers.serena]
-command = "zsh"
-args = ["-lc", "export HOME=\"$PWD/.serena-home\"; mkdir -p \"$HOME\"; exec uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context codex --project . --enable-web-dashboard false"]
-
 [tui]
 status_line = ["current-dir", "git-branch"]
-
 
 [projects."/Users/j5ik2o/Sources/j5ik2o.github.com/j5ik2o/ai-tools"]
 trust_level = "trusted"
