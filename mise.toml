@@ -1,0 +1,14 @@
+[tools]
+"github:microsoft/apm" = "latest"
+
+[tasks."apm:version"]
+description = "Show the installed APM CLI version"
+run = "apm --version"
+
+[tasks."apm:marketplace:check"]
+description = "Validate marketplace.yml by previewing the APM build"
+run = "apm marketplace build --dry-run"
+
+[tasks."apm:marketplace:build"]
+description = "Build marketplace.json from marketplace.yml"
+run = "apm marketplace build"

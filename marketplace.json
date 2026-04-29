@@ -1,0 +1,58 @@
+{
+  "name": "ai-tools",
+  "description": "Marketplace for AI agent skill plugins.",
+  "version": "0.3.2",
+  "owner": {
+    "name": "Junichi Kato",
+    "email": "j5ik2o@gmail.com"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "agent-skills",
+      "tags": [
+        "development",
+        "skills"
+      ],
+      "source": {
+        "type": "github",
+        "repository": "j5ik2o/ai-tools",
+        "path": "plugins/agent-skills",
+        "ref": "9125e455767663b15bf66f18f32e6f2e56cb97ad",
+        "commit": "9125e455767663b15bf66f18f32e6f2e56cb97ad"
+      }
+    },
+    {
+      "name": "takt",
+      "tags": [
+        "development",
+        "workflow",
+        "orchestration"
+      ],
+      "source": {
+        "type": "github",
+        "repository": "j5ik2o/ai-tools",
+        "path": "plugins/takt",
+        "ref": "9125e455767663b15bf66f18f32e6f2e56cb97ad",
+        "commit": "9125e455767663b15bf66f18f32e6f2e56cb97ad"
+      }
+    },
+    {
+      "name": "software-design",
+      "tags": [
+        "development",
+        "software-design",
+        "ddd"
+      ],
+      "source": {
+        "type": "github",
+        "repository": "j5ik2o/ai-tools",
+        "path": "plugins/software-design",
+        "ref": "9125e455767663b15bf66f18f32e6f2e56cb97ad",
+        "commit": "9125e455767663b15bf66f18f32e6f2e56cb97ad"
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+name: ai-tools
+description: Marketplace for AI agent skill plugins.
+version: 0.3.2
+owner:
+  name: Junichi Kato
+  email: j5ik2o@gmail.com
+metadata:
+  pluginRoot: ./plugins
+packages:
+  - name: agent-skills
+    description: Collection of agent skills demonstrating various capabilities including skill creation, MCP building, visual design, algorithmic art, internal communications, web testing, artifact building, Slack GIFs, and theme styling.
+    source: j5ik2o/ai-tools
+    subdir: plugins/agent-skills
+    ref: 9125e455767663b15bf66f18f32e6f2e56cb97ad
+    tags:
+      - development
+      - skills
+  - name: takt
+    description: TAKT workflow engine skills for multi-agent orchestration. Includes analyzers, builders, and optimizers for TAKT workflow YAML.
+    source: j5ik2o/ai-tools
+    subdir: plugins/takt
+    ref: 9125e455767663b15bf66f18f32e6f2e56cb97ad
+    tags:
+      - development
+      - workflow
+      - orchestration
+  - name: software-design
+    description: Software design skills for DDD, clean architecture, error handling, package design, refactoring, and maintainable domain modeling.
+    source: j5ik2o/ai-tools
+    subdir: plugins/software-design
+    ref: 9125e455767663b15bf66f18f32e6f2e56cb97ad
+    tags:
+      - development
+      - software-design
+      - ddd
