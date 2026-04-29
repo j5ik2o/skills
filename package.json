@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "devDependencies": {
-    "takt": "^0.36.0"
+    "takt": "^0.38.0"
   },
   "scripts": {
     "takt": "scripts/run-takt.sh",
