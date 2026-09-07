@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "devDependencies": {
-    "takt": "^0.51.0"
+    "takt": "^0.64.0"
   },
   "scripts": {
     "generate:codex-skill-metadata": "bash scripts/generate-codex-skill-metadata.sh",
